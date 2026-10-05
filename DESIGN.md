@@ -7,6 +7,14 @@ colors:
   caramel: "#a0560d"
   caramel-hover: "#8a4a0b"
   honey-ink: "#2a1805"
+  honey-bright: "#f08c1e"
+  honey-bright-hover: "#f5a040"
+  amber: "#b45309"
+  amber-hover: "#92400e"
+  lavender: "#6d4fc0"
+  lavender-soft: "#efe9fb"
+  lavender-ink: "#4a2f96"
+  lavender-dark-theme: "#b79be3"
   terracotta: "#e8876b"
   terracotta-deep: "#b4472f"
   wax-bg: "#faf6f0"
@@ -57,12 +65,16 @@ spacing:
   "8": "32px"
 components:
   button-primary-light:
-    backgroundColor: "{colors.caramel}"
-    textColor: "#ffffff"
+    backgroundColor: "{colors.honey-bright}"
+    textColor: "{colors.honey-ink}"
     rounded: "{rounded.full}"
     padding: "12px 22px"
   button-primary-light-hover:
-    backgroundColor: "{colors.caramel-hover}"
+    backgroundColor: "{colors.honey-bright-hover}"
+  button-secondary-light:
+    backgroundColor: "{colors.lavender-soft}"
+    textColor: "{colors.lavender-ink}"
+    rounded: "{rounded.full}"
   button-primary-dark:
     backgroundColor: "{colors.honey}"
     textColor: "{colors.honey-ink}"

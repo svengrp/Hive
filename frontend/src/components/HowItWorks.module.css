@@ -3,6 +3,22 @@
   background: var(--bg-main);
 }
 
+/* En clair, bande brun « propolis » : casse le fond crème continu et donne du
+   rythme (clair / sombre / clair). On y reprend les jetons du thème sombre. */
+:global(body.light) .section {
+  --bg-main: #2a2119;
+  --bg-card: #342a21;
+  --border-soft: #4a3e32;
+  --text-main: #f5ecdf;
+  --text-muted: #bfae98;
+  --accent-rgb: 240, 169, 59;
+  --cta-text: #2a1805;
+  --lavender-rgb: 183, 155, 227;
+  --lavender-on: #2a1805;
+  --shadow-rgb: 0, 0, 0;
+  --shadow-k: 1;
+}
+
 .header {
   max-width: 620px;
   margin: 0 auto 56px;
@@ -60,7 +76,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  /* Couleur franche par étape (miel, terracotta, miel) plutôt qu'un dégradé des deux. */
+  /* Couleur franche par étape (miel, lavande, miel) plutôt qu'un dégradé des deux. */
   --step-rgb: var(--accent-rgb);
   background: rgb(var(--step-rgb));
   box-shadow:
@@ -89,9 +105,13 @@
 }
 
 .link {
-  --step-rgb: var(--highlight-rgb);
+  --step-rgb: var(--lavender-rgb);
   animation-delay: 0.8s;
   border-radius: 58% 42% 39% 61% / 55% 48% 52% 45%;
+}
+
+.link .visualIcon {
+  color: var(--lavender-on);
 }
 
 .spark {

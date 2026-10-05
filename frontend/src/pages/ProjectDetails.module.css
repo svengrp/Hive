@@ -499,7 +499,7 @@
   box-shadow: 0 8px 28px rgba(var(--shadow-rgb), calc(0.28 * var(--shadow-k)));
   animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1), toastOut 0.3s ease 2.7s forwards;
   white-space: nowrap;
-  background: var(--accent);
+  background: var(--cta);
   border: none;
   color: var(--cta-text);
 }
@@ -523,7 +523,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--accent);
+  background: var(--cta);
   color: var(--cta-text);
   border: none;
   padding: 10px 22px;
@@ -800,7 +800,7 @@
 }
 
 .acceptBtn {
-  background: var(--accent);
+  background: var(--cta);
   color: var(--cta-text);
 }
 
@@ -922,7 +922,7 @@
 }
 
 .modalSubmit {
-  background: var(--accent);
+  background: var(--cta);
   color: var(--cta-text);
   border: none;
   padding: 9px 18px;
@@ -1071,7 +1071,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--accent);
+  background: var(--cta);
   color: var(--cta-text);
   border: none;
   padding: 7px 16px;

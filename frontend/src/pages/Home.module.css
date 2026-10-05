@@ -16,7 +16,7 @@
   height: 220px;
   border-radius: 50%;
   /* Lumière d'ambiance, pas un disque : flou large et opacité basse */
-  background: rgba(var(--accent-rgb), 0.1);
+  background: rgba(var(--cta-rgb), 0.14);
   filter: blur(48px);
   pointer-events: none;
   animation: drift 14s ease-in-out infinite alternate;
@@ -29,7 +29,7 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: rgba(var(--highlight-rgb), 0.08);
+  background: rgba(var(--lavender-rgb), 0.14);
   filter: blur(48px);
   pointer-events: none;
   animation: drift 18s ease-in-out infinite alternate-reverse;
@@ -72,7 +72,7 @@
   bottom: -0.18em;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0), var(--accent) 30%, var(--accent) 70%, rgba(var(--accent-rgb), 0));
+  background: linear-gradient(90deg, rgba(var(--lavender-rgb), 0), var(--lavender) 30%, var(--lavender) 70%, rgba(var(--lavender-rgb), 0));
   transform-origin: left center;
   animation: underline 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(var(--accent-delay) + 850ms);
@@ -160,9 +160,9 @@
   gap: 8px;
   padding: 12px 22px;
   border-radius: 999px;
-  background: transparent;
-  border: 1px solid var(--border-soft);
-  color: var(--text-main);
+  background: var(--lavender-soft);
+  border: 1px solid rgba(var(--lavender-rgb), 0.35);
+  color: var(--lavender-ink);
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
@@ -170,8 +170,9 @@
 }
 
 .secondaryCta:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: rgba(var(--lavender-rgb), 0.2);
+  border-color: var(--lavender);
+  color: var(--lavender-ink);
 }
 
 .scrollCue {
@@ -182,9 +183,9 @@
   height: 40px;
   margin-top: 40px;
   border-radius: 50%;
-  border: 1px solid var(--border-soft);
+  border: 1px solid rgba(var(--lavender-rgb), 0.4);
   background: transparent;
-  color: var(--text-muted);
+  color: var(--lavender);
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease;
   animation:
@@ -193,8 +194,8 @@
 }
 
 .scrollCue:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--lavender);
+  color: var(--lavender);
 }
 
 @keyframes bounce {

@@ -84,7 +84,7 @@
 /* BOUTON SUBMIT */
 .loginBtn {
   width: 100%;
-  background: var(--accent);
+  background: var(--cta);
   color: var(--cta-text);
   border: none;
   border-radius: 14px;
@@ -97,7 +97,7 @@
 }
 
 .loginBtn:hover:not(:disabled) {
-  background: var(--accent-light);
+  background: var(--cta-hover);
   transform: translateY(-2px);
 }
 

@@ -17,6 +17,13 @@
   --cta-rgb: 240, 169, 59;
   --highlight: #e8876b;
   --highlight-rgb: 232, 135, 107;
+  /* Lavande : 2e couleur de marque (exploration, collaboration), pour sortir
+     du duo orange + blanc. --lavender-on = texte/icône posé sur la lavande. */
+  --lavender: #b79be3;
+  --lavender-rgb: 183, 155, 227;
+  --lavender-soft: rgba(183, 155, 227, 0.12);
+  --lavender-ink: #d6c6f5;
+  --lavender-on: #2a1805;
   --text-main: #f5ecdf;
   --text-muted: #a89885;
   --danger: #e5484d;
@@ -65,17 +72,22 @@ body.light {
   --bg-card-soft: #f4eee5;
   --bg-input: #faf7f2;
   --border-soft: #e8dccb;
-  /* En clair, le miel vif manque de contraste : ambre caramel, lisible en texte
-     sur crème (AA) et en fond de bouton sous un texte blanc (AA). */
-  --accent: #a0560d;
-  --accent-hover: #8a4a0b;
-  --accent-rgb: 160, 86, 13;
-  --cta: #a0560d;
-  --cta-hover: #8a4a0b;
-  --cta-text: #ffffff;
-  --cta-rgb: 160, 86, 13;
+  /* Accent texte : ambre net (AA sur crème). Boutons : miel lumineux avec texte
+     encre, comme en sombre ; l'ancien caramel #a0560d paraissait marron. */
+  --accent: #b45309;
+  --accent-hover: #92400e;
+  --accent-rgb: 180, 83, 9;
+  --cta: #f08c1e;
+  --cta-hover: #f5a040;
+  --cta-text: #2a1805;
+  --cta-rgb: 240, 140, 30;
   --highlight: #b4472f;
   --highlight-rgb: 180, 71, 47;
+  --lavender: #6d4fc0;
+  --lavender-rgb: 109, 79, 192;
+  --lavender-soft: #efe9fb;
+  --lavender-ink: #4a2f96;
+  --lavender-on: #ffffff;
   --text-main: #2b2016;
   --text-muted: #6f5f4c;
   --danger: #c9353a;
