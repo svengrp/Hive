@@ -52,7 +52,7 @@
     height: 16px;
     border-radius: 999px;
     background: var(--highlight);
-    color: var(--cta-text);
+    color: var(--highlight-text);
     font-size: 10px;
     font-weight: 700;
     display: flex;

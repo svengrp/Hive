@@ -369,7 +369,7 @@
 }
 
 .addBtn {
-  background: var(--accent);
+  background: var(--cta);
   border: none;
   width: 42px;
   height: 42px;
@@ -386,7 +386,7 @@
 }
 
 .addBtn:hover {
-  background: var(--accent-hover);
+  background: var(--cta-hover);
   transform: translateY(-1px);
 }
 
@@ -399,7 +399,7 @@
 
 /* SAVE BUTTON */
 .primaryBtn {
-  background: var(--accent);
+  background: var(--cta);
   border: none;
   padding: 14px 28px;
   border-radius: 14px;
@@ -411,7 +411,7 @@
 }
 
 .primaryBtn:hover {
-  background: var(--accent-hover);
+  background: var(--cta-hover);
   transform: translateY(-2px);
 }
 

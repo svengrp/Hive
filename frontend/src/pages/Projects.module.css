@@ -41,7 +41,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--accent);
+  background: var(--cta);
   border: none;
   padding: 10px 16px;
   border-radius: 10px;
@@ -53,7 +53,7 @@
 }
 
 .createBtn:hover {
-  background: var(--accent-hover);
+  background: var(--cta-hover);
   transform: translateY(-1px);
 }
 

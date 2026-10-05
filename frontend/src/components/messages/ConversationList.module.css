@@ -240,7 +240,7 @@
   padding: 0 6px;
   border-radius: var(--radius-full);
   background: var(--highlight);
-  color: var(--cta-text);
+  color: var(--highlight-text);
   font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;

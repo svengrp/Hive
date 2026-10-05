@@ -17,6 +17,7 @@
   --cta-rgb: 240, 169, 59;
   --highlight: #e8876b;
   --highlight-rgb: 232, 135, 107;
+  --highlight-text: #2a1805;
   /* Sauge : 2e couleur de marque. Miel + sauge = la ruche et les fleurs, la
      récolte et la croissance ; harmonie chaude/froide douce, loin du duo
      orange + blanc des SaaS. --sage-on = texte/icône posé sur la sauge. */
@@ -85,6 +86,7 @@ body.light {
   --cta-rgb: 240, 140, 30;
   --highlight: #b4472f;
   --highlight-rgb: 180, 71, 47;
+  --highlight-text: #ffffff;
   --sage: #4f7046;
   --sage-rgb: 79, 112, 70;
   --sage-soft: #e9efe2;
