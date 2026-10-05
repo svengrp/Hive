@@ -29,3 +29,6 @@ build/
 
 # Sauvegardes de .env créées par backend/scripts/setupStripe.js (contiennent des secrets)
 .env.backup-*
+
+# Sauvegardes locales des scripts de maintenance
+backend/scripts/backups/
