@@ -59,31 +59,27 @@
 
 .titleAccent {
   position: relative;
-  z-index: 0;
   display: inline-block;
   color: var(--accent);
 }
 
-/* Coup de surligneur miel derrière la partie accent, une fois les mots en place :
-   rappelle le miel qui nappe, sans effet gadget. */
-.titleAccent::before {
+/* Trait fin qui se dessine sous la partie accent une fois les mots en place. */
+.titleAccent::after {
   content: "";
   position: absolute;
-  z-index: -1;
-  left: -0.14em;
-  right: -0.14em;
-  bottom: 0.04em;
-  height: 0.42em;
-  border-radius: 0.18em 0.32em 0.22em 0.36em;
-  background: rgba(var(--cta-rgb), 0.32);
+  left: 0;
+  right: 0;
+  bottom: -0.18em;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0), var(--accent) 30%, var(--accent) 70%, rgba(var(--accent-rgb), 0));
   transform-origin: left center;
-  transform: scaleX(0) skewX(-8deg);
-  animation: honeySweep 0.75s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-  animation-delay: calc(var(--accent-delay) + 200ms);
+  animation: underline 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--accent-delay) + 100ms);
 }
 
 /* ENTRÉE : chaque mot remonte derrière un masque (révélation éditoriale),
-   puis le surligneur miel, puis texte et boutons en cascade. */
+   puis le trait sous l'accent, puis texte et boutons en cascade. */
 .mask {
   display: inline-block;
   overflow: hidden;
@@ -122,9 +118,9 @@
   to   { opacity: 1; transform: none; }
 }
 
-@keyframes honeySweep {
-  from { transform: scaleX(0) skewX(-8deg); }
-  to   { transform: scaleX(1) skewX(-8deg); }
+@keyframes underline {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
 }
 
 .subtitle {
@@ -224,13 +220,8 @@
   .actions,
   .heroGlow1,
   .heroGlow2,
-  .titleAccent::before {
+  .titleAccent::after {
     animation: none;
-  }
-
-  /* Sans animation, le surligneur doit rester visible. */
-  .titleAccent::before {
-    transform: skewX(-8deg);
   }
 }
 

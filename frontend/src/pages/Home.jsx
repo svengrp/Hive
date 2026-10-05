@@ -12,7 +12,7 @@ function Home() {
   const heroRef = useRef(null);
   const mainWords = t("home.titleMain").split(' ');
   const accentWords = t("home.titleAccent").split(' ');
-  // Chaque mot remonte avec 70 ms d'écart ; le surligneur miel passe une fois
+  // Chaque mot remonte avec 70 ms d'écart ; le trait se dessine une fois
   // le dernier mot en place, puis le sous-titre et les boutons suivent.
   const accentDelay = 150 + (mainWords.length + accentWords.length) * 70 + 300;
 
