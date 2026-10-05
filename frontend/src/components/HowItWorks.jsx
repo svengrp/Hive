@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { MapPin, Users, Sparkles } from 'lucide-react';
+import { Compass, Handshake, Sprout } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import classes from './HowItWorks.module.css';
 
+// Découvrir, rejoindre, faire naître : une icône par geste, toutes dans la même alvéole.
 const STEPS = [
-  { shape: 'pin', Icon: MapPin, titleKey: 'howItWorks.step1Title', descriptionKey: 'howItWorks.step1Description' },
-  { shape: 'link', Icon: Users, titleKey: 'howItWorks.step2Title', descriptionKey: 'howItWorks.step2Description' },
-  { shape: 'spark', Icon: Sparkles, titleKey: 'howItWorks.step3Title', descriptionKey: 'howItWorks.step3Description' },
+  { id: 'discover', Icon: Compass, titleKey: 'howItWorks.step1Title', descriptionKey: 'howItWorks.step1Description' },
+  { id: 'join', Icon: Handshake, titleKey: 'howItWorks.step2Title', descriptionKey: 'howItWorks.step2Description' },
+  { id: 'launch', Icon: Sprout, titleKey: 'howItWorks.step3Title', descriptionKey: 'howItWorks.step3Description' },
 ];
 
 /* Section "sales pitch" affichée entre le hero et la carte : présente le principe
@@ -52,9 +53,9 @@ function HowItWorks() {
 
       <div className={classes.grid}>
         {STEPS.map((step, index) => (
-          <div key={step.shape} className={classes.step} style={{ transitionDelay: `${index * 100}ms` }}>
-            <div className={`${classes.visual} ${classes[step.shape]}`}>
-              <step.Icon size={22} className={classes.visualIcon} />
+          <div key={step.id} className={classes.step} style={{ transitionDelay: `${index * 100}ms` }}>
+            <div className={classes.cell} aria-hidden="true">
+              <step.Icon size={22} strokeWidth={1.75} className={classes.cellIcon} />
             </div>
             <h3 className={classes.stepTitle}>{t(step.titleKey)}</h3>
             <p className={classes.stepDescription}>{t(step.descriptionKey)}</p>

@@ -71,56 +71,32 @@
   transform: translateY(0);
 }
 
-.visual {
-  width: 64px;
-  height: 64px;
+/* Alvéole plate, même hexagone que le logo : fond miel très léger, icône ambre.
+   Une seule couleur pour les trois étapes ; au survol de la carte, l'alvéole
+   se remplit de miel (le geste « remplir la ruche »). */
+.cell {
+  width: 52px;
+  height: 60px;
   margin-bottom: 24px;
-  border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  /* Couleur franche par étape (miel, sauge, miel) plutôt qu'un dégradé des deux. */
-  --step-rgb: var(--cta-rgb);
-  background: rgb(var(--step-rgb));
-  box-shadow:
-    0 14px 28px -10px rgba(var(--step-rgb), 0.5),
-    inset 0 2px 6px rgba(255, 255, 255, 0.35),
-    inset 0 -8px 14px rgba(var(--shadow-rgb), calc(0.22 * var(--shadow-k)));
-  animation: float 6s ease-in-out infinite;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: rgba(var(--cta-rgb), 0.16);
+  transition: background-color var(--dur-slow) var(--ease-out);
 }
 
-.visual::after {
-  content: '';
-  position: absolute;
-  top: 11%;
-  left: 18%;
-  width: 32%;
-  height: 20%;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  filter: blur(3px);
+.cellIcon {
+  color: var(--accent);
+  transition: color var(--dur-slow) var(--ease-out);
 }
 
-.visualIcon {
-  position: relative;
-  z-index: 1;
+.step:hover .cell {
+  background: var(--cta);
+}
+
+.step:hover .cellIcon {
   color: var(--cta-text);
-}
-
-.link {
-  --step-rgb: var(--sage-rgb);
-  animation-delay: 0.8s;
-  border-radius: 58% 42% 39% 61% / 55% 48% 52% 45%;
-}
-
-.link .visualIcon {
-  color: var(--sage-on);
-}
-
-.spark {
-  animation-delay: 1.6s;
-  border-radius: 50% 50% 34% 66% / 62% 38% 62% 38%;
 }
 
 .stepTitle {
@@ -135,11 +111,6 @@
   font-size: 14.5px;
   line-height: 1.6;
   color: var(--text-muted);
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(4deg); }
 }
 
 @media (max-width: 900px) {
@@ -165,10 +136,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .visual {
-    animation: none;
-  }
-
   .step {
     transition: none;
   }
