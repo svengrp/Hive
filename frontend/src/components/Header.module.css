@@ -103,7 +103,7 @@
   padding: 7px 16px;
   border-radius: 10px;
   background: var(--cta);
-  transition: 0.2s ease;
+  transition: 0.2s ease, transform 0.12s ease;
 }
 
 .btnRegister:hover {
@@ -808,4 +808,9 @@
   }
 
   /* Le panel mobile passe par un portal — voir .mobileNotifFixed */
+}
+
+/* Appui : léger enfoncement au clic. */
+.btnRegister:active:not(:disabled) {
+  transform: scale(0.98);
 }

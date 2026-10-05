@@ -89,7 +89,7 @@
   border: none;
   border-radius: 14px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.2s ease, transform 0.12s ease;
   padding: 15px;
   font-size: 15px;
   font-weight: 600;
@@ -133,4 +133,9 @@
     padding: 28px 20px;
     border-radius: 14px;
   }
+}
+
+/* Appui : léger enfoncement au clic. */
+.loginBtn:active:not(:disabled) {
+  transform: scale(0.98);
 }

@@ -51,7 +51,7 @@
   border: none;
   border-radius: 14px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.2s ease, transform 0.12s ease;
 }
 
 .registerBtn:hover {
@@ -267,4 +267,9 @@
     height: 44px;
     font-size: 18px;
   }
+}
+
+/* Appui : léger enfoncement au clic. */
+.registerBtn:active:not(:disabled) {
+  transform: scale(0.98);
 }

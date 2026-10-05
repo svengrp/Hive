@@ -531,7 +531,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.2s ease, transform 0.12s ease;
   width: 100%;
   justify-content: center;
 }
@@ -1253,4 +1253,41 @@
   font-size: 11px;
   font-weight: 700;
   vertical-align: 2px;
+}
+
+/* Appui : léger enfoncement au clic. */
+.joinBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Statut de candidature : apparaît avec un léger rebond, l'icône se dessine. */
+.joinPending,
+.joinAccepted {
+  animation: statusIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.joinPending svg *,
+.joinAccepted svg * {
+  stroke-dasharray: 100;
+  animation: statusDraw 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.15s backwards;
+}
+
+@keyframes statusIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.92); }
+}
+
+@keyframes statusDraw {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .joinPending,
+  .joinAccepted,
+  .joinPending svg *,
+  .joinAccepted svg *,
+  .joinBtn:active:not(:disabled) {
+    animation: none;
+    transform: none;
+  }
 }
