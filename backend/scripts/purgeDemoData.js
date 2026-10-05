@@ -39,7 +39,7 @@ async function main() {
 
   // Ce qui sera supprimé, collection par collection (dépendances d'abord).
   const plan = [
-    ['messages', Message, { $or: [{ conversationId: { $in: conversationIds } }, { senderId: { $in: userIds } }] }],
+    ['messages', Message, { $or: [{ conversationId: { $in: conversationIds } }, { senderId: { $in: userIds } }, { receiverId: { $in: userIds } }] }],
     ['projectEvents', ProjectEvent, { $or: [{ conversationId: { $in: conversationIds } }, { createdBy: { $in: userIds } }] }],
     ['projectTasks', ProjectTask, { $or: [{ conversationId: { $in: conversationIds } }, { createdBy: { $in: userIds } }] }],
     ['conversations', Conversation, { _id: { $in: conversationIds } }],

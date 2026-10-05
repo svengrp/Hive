@@ -50,6 +50,8 @@ exports.getConversations = async (req, res) => {
     // Déduplique par interlocuteur et calcule les non-lus
     const seen = new Map();
     for (const msg of messages) {
+      // Compte supprimé : populate renvoie null, la conversation n'a plus d'interlocuteur.
+      if (!msg.senderId || !msg.receiverId) continue;
       const partner = msg.senderId._id.toString() === me ? msg.receiverId : msg.senderId;
       const key = partner._id.toString();
       if (blockedIds.includes(key)) continue;
@@ -123,6 +125,7 @@ exports.getArchivedDMs = async (req, res) => {
 
     const seen = new Map();
     for (const msg of messages) {
+      if (!msg.senderId || !msg.receiverId) continue; // compte supprimé
       const partner = msg.senderId._id.toString() === me ? msg.receiverId : msg.senderId;
       const key = partner._id.toString();
       if (!archivedIds.includes(key)) continue;
