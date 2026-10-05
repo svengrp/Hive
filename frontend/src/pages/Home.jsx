@@ -5,15 +5,16 @@ import { useTranslation } from 'react-i18next';
 import MapView from '../components/MapView';
 import HowItWorks from '../components/HowItWorks';
 import HeroNetwork from '../components/HeroNetwork';
-import DecodeText from '../components/DecodeText';
 import classes from './Home.module.css';
 
 function Home() {
   const { t } = useTranslation();
   const heroRef = useRef(null);
   const mainWords = t("home.titleMain").split(' ');
-  // Chaque mot apparaît avec 70 ms d'écart ; la partie accent se décode juste après.
-  const accentDelay = 150 + mainWords.length * 70;
+  const accentWords = t("home.titleAccent").split(' ');
+  // Chaque mot remonte avec 70 ms d'écart ; le surligneur miel passe une fois
+  // le dernier mot en place, puis le sous-titre et les boutons suivent.
+  const accentDelay = 150 + (mainWords.length + accentWords.length) * 70 + 300;
 
   return (
     <div>
@@ -28,12 +29,21 @@ function Home() {
             <span aria-hidden="true">
               {mainWords.map((word, index) => (
                 <Fragment key={`${word}-${index}`}>
-                  <span className={classes.word} style={{ '--i': index }}>{word}</span>{' '}
+                  <span className={classes.mask}>
+                    <span className={classes.word} style={{ '--i': index }}>{word}</span>
+                  </span>{' '}
                 </Fragment>
               ))}
             </span>
-            <span className={classes.titleAccent}>
-              <DecodeText text={t("home.titleAccent")} delay={accentDelay} duration={950} />
+            <span className={classes.titleAccent} aria-hidden="true">
+              {accentWords.map((word, index) => (
+                <Fragment key={`${word}-${index}`}>
+                  <span className={classes.mask}>
+                    <span className={classes.word} style={{ '--i': mainWords.length + index }}>{word}</span>
+                  </span>
+                  {index < accentWords.length - 1 ? ' ' : null}
+                </Fragment>
+              ))}
             </span>
           </h1>
 

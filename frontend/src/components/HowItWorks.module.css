@@ -1,22 +1,26 @@
+/* Fond « cire » + motif d'alvéoles très discret : rappelle la ruche et casse
+   le fond uni, sans coupure nette (fondu en haut et en bas vers la page). */
 .section {
   padding: 88px 32px;
-  background: var(--bg-main);
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, var(--bg-main) 0%, var(--hive-band) 22%, var(--hive-band) 78%, var(--bg-main) 100%);
 }
 
-/* En clair, bande brun « propolis » : casse le fond crème continu et donne du
-   rythme (clair / sombre / clair). On y reprend les jetons du thème sombre. */
-:global(body.light) .section {
-  --bg-main: #2a2119;
-  --bg-card: #342a21;
-  --border-soft: #4a3e32;
-  --text-main: #f5ecdf;
-  --text-muted: #bfae98;
-  --accent-rgb: 240, 169, 59;
-  --cta-text: #2a1805;
-  --lavender-rgb: 183, 155, 227;
-  --lavender-on: #2a1805;
-  --shadow-rgb: 0, 0, 0;
-  --shadow-k: 1;
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: rgb(var(--cta-rgb));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='98'%3E%3Cpath d='M28 66L0 50V17L28 1l28 16v33L28 66zm0 0v32M0 17L-28 1M56 17L84 1' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 56px 98px repeat,
+    radial-gradient(ellipse 60% 55% at 50% 50%, #000 0%, transparent 75%);
+  -webkit-mask-composite: source-in;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='98'%3E%3Cpath d='M28 66L0 50V17L28 1l28 16v33L28 66zm0 0v32M0 17L-28 1M56 17L84 1' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 56px 98px repeat,
+    radial-gradient(ellipse 60% 55% at 50% 50%, #000 0%, transparent 75%);
+  mask-composite: intersect;
+  opacity: 0.18;
 }
 
 .header {
@@ -76,8 +80,8 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  /* Couleur franche par étape (miel, lavande, miel) plutôt qu'un dégradé des deux. */
-  --step-rgb: var(--accent-rgb);
+  /* Couleur franche par étape (miel, sauge, miel) plutôt qu'un dégradé des deux. */
+  --step-rgb: var(--cta-rgb);
   background: rgb(var(--step-rgb));
   box-shadow:
     0 14px 28px -10px rgba(var(--step-rgb), 0.5),
@@ -105,13 +109,13 @@
 }
 
 .link {
-  --step-rgb: var(--lavender-rgb);
+  --step-rgb: var(--sage-rgb);
   animation-delay: 0.8s;
   border-radius: 58% 42% 39% 61% / 55% 48% 52% 45%;
 }
 
 .link .visualIcon {
-  color: var(--lavender-on);
+  color: var(--sage-on);
 }
 
 .spark {

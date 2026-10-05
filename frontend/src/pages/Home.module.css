@@ -29,7 +29,7 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: rgba(var(--lavender-rgb), 0.14);
+  background: rgba(var(--sage-rgb), 0.14);
   filter: blur(48px);
   pointer-events: none;
   animation: drift 18s ease-in-out infinite alternate-reverse;
@@ -59,29 +59,43 @@
 
 .titleAccent {
   position: relative;
+  z-index: 0;
   display: inline-block;
   color: var(--accent);
 }
 
-/* Trait qui se dessine sous la partie accent une fois le décodage terminé. */
-.titleAccent::after {
+/* Coup de surligneur miel derrière la partie accent, une fois les mots en place :
+   rappelle le miel qui nappe, sans effet gadget. */
+.titleAccent::before {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.18em;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, rgba(var(--lavender-rgb), 0), var(--lavender) 30%, var(--lavender) 70%, rgba(var(--lavender-rgb), 0));
+  z-index: -1;
+  left: -0.14em;
+  right: -0.14em;
+  bottom: 0.04em;
+  height: 0.42em;
+  border-radius: 0.18em 0.32em 0.22em 0.36em;
+  background: rgba(var(--cta-rgb), 0.32);
   transform-origin: left center;
-  animation: underline 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(var(--accent-delay) + 850ms);
+  transform: scaleX(0) skewX(-8deg);
+  animation: honeySweep 0.75s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: calc(var(--accent-delay) + 200ms);
 }
 
-/* ENTRÉE : mots du titre, puis texte et boutons en cascade. */
+/* ENTRÉE : chaque mot remonte derrière un masque (révélation éditoriale),
+   puis le surligneur miel, puis texte et boutons en cascade. */
+.mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Marge pour les jambages (g, p, j) que le masque couperait sinon. */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
 .word {
   display: inline-block;
-  animation: wordIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: wordUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(150ms + var(--i) * 70ms);
 }
 
@@ -98,9 +112,9 @@
   animation-delay: calc(var(--accent-delay) + 500ms);
 }
 
-@keyframes wordIn {
-  from { opacity: 0; transform: translateY(0.45em); filter: blur(8px); }
-  to   { opacity: 1; transform: none; filter: blur(0); }
+@keyframes wordUp {
+  from { transform: translateY(110%); }
+  to   { transform: none; }
 }
 
 @keyframes riseIn {
@@ -108,9 +122,9 @@
   to   { opacity: 1; transform: none; }
 }
 
-@keyframes underline {
-  from { transform: scaleX(0); opacity: 0; }
-  to   { transform: scaleX(1); opacity: 1; }
+@keyframes honeySweep {
+  from { transform: scaleX(0) skewX(-8deg); }
+  to   { transform: scaleX(1) skewX(-8deg); }
 }
 
 .subtitle {
@@ -160,9 +174,9 @@
   gap: 8px;
   padding: 12px 22px;
   border-radius: 999px;
-  background: var(--lavender-soft);
-  border: 1px solid rgba(var(--lavender-rgb), 0.35);
-  color: var(--lavender-ink);
+  background: var(--sage-soft);
+  border: 1px solid rgba(var(--sage-rgb), 0.35);
+  color: var(--sage-ink);
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
@@ -170,9 +184,9 @@
 }
 
 .secondaryCta:hover {
-  background: rgba(var(--lavender-rgb), 0.2);
-  border-color: var(--lavender);
-  color: var(--lavender-ink);
+  background: rgba(var(--sage-rgb), 0.2);
+  border-color: var(--sage);
+  color: var(--sage-ink);
 }
 
 .scrollCue {
@@ -183,9 +197,9 @@
   height: 40px;
   margin-top: 40px;
   border-radius: 50%;
-  border: 1px solid rgba(var(--lavender-rgb), 0.4);
+  border: 1px solid rgba(var(--sage-rgb), 0.4);
   background: transparent;
-  color: var(--lavender);
+  color: var(--sage);
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease;
   animation:
@@ -194,8 +208,8 @@
 }
 
 .scrollCue:hover {
-  border-color: var(--lavender);
-  color: var(--lavender);
+  border-color: var(--sage);
+  color: var(--sage);
 }
 
 @keyframes bounce {
@@ -210,8 +224,13 @@
   .actions,
   .heroGlow1,
   .heroGlow2,
-  .titleAccent::after {
+  .titleAccent::before {
     animation: none;
+  }
+
+  /* Sans animation, le surligneur doit rester visible. */
+  .titleAccent::before {
+    transform: skewX(-8deg);
   }
 }
 

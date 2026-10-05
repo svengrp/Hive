@@ -11,10 +11,11 @@ colors:
   honey-bright-hover: "#f5a040"
   amber: "#b45309"
   amber-hover: "#92400e"
-  lavender: "#6d4fc0"
-  lavender-soft: "#efe9fb"
-  lavender-ink: "#4a2f96"
-  lavender-dark-theme: "#b79be3"
+  sage: "#4f7046"
+  sage-soft: "#e9efe2"
+  sage-ink: "#34502d"
+  sage-dark-theme: "#9dc18e"
+  hive-band: "#f4ebdb"
   terracotta: "#e8876b"
   terracotta-deep: "#b4472f"
   wax-bg: "#faf6f0"
@@ -72,8 +73,8 @@ components:
   button-primary-light-hover:
     backgroundColor: "{colors.honey-bright-hover}"
   button-secondary-light:
-    backgroundColor: "{colors.lavender-soft}"
-    textColor: "{colors.lavender-ink}"
+    backgroundColor: "{colors.sage-soft}"
+    textColor: "{colors.sage-ink}"
     rounded: "{rounded.full}"
   button-primary-dark:
     backgroundColor: "{colors.honey}"

@@ -17,13 +17,15 @@
   --cta-rgb: 240, 169, 59;
   --highlight: #e8876b;
   --highlight-rgb: 232, 135, 107;
-  /* Lavande : 2e couleur de marque (exploration, collaboration), pour sortir
-     du duo orange + blanc. --lavender-on = texte/icône posé sur la lavande. */
-  --lavender: #b79be3;
-  --lavender-rgb: 183, 155, 227;
-  --lavender-soft: rgba(183, 155, 227, 0.12);
-  --lavender-ink: #d6c6f5;
-  --lavender-on: #2a1805;
+  /* Sauge : 2e couleur de marque. Miel + sauge = la ruche et les fleurs, la
+     récolte et la croissance ; harmonie chaude/froide douce, loin du duo
+     orange + blanc des SaaS. --sage-on = texte/icône posé sur la sauge. */
+  --sage: #9dc18e;
+  --sage-rgb: 157, 193, 142;
+  --sage-soft: rgba(157, 193, 142, 0.12);
+  --sage-ink: #c4dcb7;
+  --sage-on: #1f2a17;
+  --hive-band: #1f1a15;
   --text-main: #f5ecdf;
   --text-muted: #a89885;
   --danger: #e5484d;
@@ -83,11 +85,13 @@ body.light {
   --cta-rgb: 240, 140, 30;
   --highlight: #b4472f;
   --highlight-rgb: 180, 71, 47;
-  --lavender: #6d4fc0;
-  --lavender-rgb: 109, 79, 192;
-  --lavender-soft: #efe9fb;
-  --lavender-ink: #4a2f96;
-  --lavender-on: #ffffff;
+  --sage: #4f7046;
+  --sage-rgb: 79, 112, 70;
+  --sage-soft: #e9efe2;
+  --sage-ink: #34502d;
+  --sage-on: #ffffff;
+  /* Fond « cire » légèrement plus doré pour les bandes de section. */
+  --hive-band: #f4ebdb;
   --text-main: #2b2016;
   --text-muted: #6f5f4c;
   --danger: #c9353a;
