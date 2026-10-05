@@ -428,3 +428,58 @@
   .countdownValue { font-size: 19px; }
   .boost { padding: var(--space-5); }
 }
+
+/* ENTRÉE : titre, offre puis les deux formules montent en cascade. */
+.title,
+.lead,
+.offer,
+.plan {
+  animation: riseIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.lead { animation-delay: 80ms; }
+.offer { animation-delay: 160ms; }
+.plan { animation-delay: 240ms; }
+.planPlus { animation-delay: 340ms; }
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(18px); }
+}
+
+/* Reflet miel qui traverse le bouton Hive+ une fois la formule affichée, puis au survol. */
+.planPlus .ctaPrimary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.planPlus .ctaPrimary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: sheen 1.1s cubic-bezier(0.65, 0, 0.35, 1) 1s;
+  pointer-events: none;
+}
+
+.planPlus .ctaPrimary:hover:not(:disabled)::after {
+  animation: sheen 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes sheen {
+  from { transform: translateX(-120%); }
+  to   { transform: translateX(120%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .lead,
+  .offer,
+  .plan,
+  .planPlus .ctaPrimary::after,
+  .planPlus .ctaPrimary:hover:not(:disabled)::after {
+    animation: none;
+  }
+}

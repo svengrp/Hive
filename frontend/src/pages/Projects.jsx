@@ -300,8 +300,8 @@ export default function Projects() {
             <h2 className={classes.recommendedTitle}>{t("billing.boostedSection")}</h2>
             <p className={classes.sectionHint}>{t("billing.boostedHint")}</p>
             <div className={classes.grid}>
-              {boosted.map((project) => (
-                <ProjectCard key={project._id} project={project} />
+              {boosted.map((project, index) => (
+                <ProjectCard key={project._id} project={project} index={index} />
               ))}
             </div>
           </div>
@@ -312,28 +312,39 @@ export default function Projects() {
           <div className={classes.recommendedSection}>
             <h2 className={classes.recommendedTitle}>{t("projects.recommended")}</h2>
             <div className={classes.grid}>
-              {recommendedShown.map((project) => (
-                <ProjectCard key={project._id} project={project} />
+              {recommendedShown.map((project, index) => (
+                <ProjectCard key={project._id} project={project} index={index} />
               ))}
             </div>
           </div>
         )}
 
-        {/* RESULTS COUNT */}
-        <div className={classes.results}>
-          {t("projects.result", { count: total })}
+        {/* RESULTS COUNT (masqué pendant le chargement, sinon « 0 projet » s'affiche) */}
+        <div className={classes.results} aria-live="polite">
+          {!loading && t("projects.result", { count: total })}
         </div>
 
         {/* GRID */}
         {loading ? (
-          <div className={classes.center}>{t("projects.loading")}</div>
+          <div className={classes.grid} aria-busy="true" aria-label={t("projects.loading")}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className={classes.skeletonCard} aria-hidden="true">
+                <div className={classes.skeletonCover} />
+                <div className={classes.skeletonBody}>
+                  <div className={`${classes.skeletonLine} ${classes.skeletonTitle}`} />
+                  <div className={classes.skeletonLine} />
+                  <div className={`${classes.skeletonLine} ${classes.skeletonShort}`} />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : projects.length === 0 ? (
           <div className={classes.center}>{t("projects.noResults")}</div>
         ) : (
           <>
             <div className={classes.grid}>
-              {projects.map((project) => (
-                <ProjectCard key={project._id} project={project} />
+              {projects.map((project, index) => (
+                <ProjectCard key={project._id} project={project} index={index} />
               ))}
             </div>
             {hasMore && (

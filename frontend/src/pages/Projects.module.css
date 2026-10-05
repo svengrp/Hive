@@ -282,6 +282,60 @@
   gap: 20px;
 }
 
+/* CHARGEMENT : squelettes à la forme des cartes, reflet qui passe (plus rassurant
+   qu'un texte « Chargement… »). */
+.skeletonCard {
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.skeletonCover,
+.skeletonLine {
+  background: linear-gradient(90deg, var(--bg-card-soft) 0%, var(--bg-card-soft) 40%, rgba(var(--cta-rgb), 0.12) 50%, var(--bg-card-soft) 60%, var(--bg-card-soft) 100%);
+  background-size: 250% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonCover {
+  aspect-ratio: 16 / 7;
+}
+
+.skeletonBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.skeletonLine {
+  height: 11px;
+  border-radius: 6px;
+}
+
+.skeletonTitle {
+  width: 60%;
+  height: 15px;
+  margin-bottom: 4px;
+}
+
+.skeletonShort {
+  width: 40%;
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to   { background-position: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonCover,
+  .skeletonLine {
+    animation: none;
+  }
+}
+
 /* EMPTY / LOADING */
 .center {
   padding: 60px 0;

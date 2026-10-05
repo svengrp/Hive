@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
    - la troncature de la description
    - le badge "Complet" quand plus aucune place n'est disponible
    - un accent de couleur par catégorie pour varier visuellement les cartes */
-function ProjectCard({ project }) {
+function ProjectCard({ project, index = 0 }) {
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -52,6 +52,7 @@ function ProjectCard({ project }) {
         "--card-accent": accent.text,
         "--card-accent-bg": accent.bg,
         "--card-accent-border": accent.border,
+        "--i": index,
       }}
     >
       <ProjectCover project={project} size="thumb" className={classes.cover} />

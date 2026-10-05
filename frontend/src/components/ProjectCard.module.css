@@ -12,6 +12,21 @@
   transition: border-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
+/* Apparition en cascade (index passé par la liste, plafonné pour ne pas trop attendre).
+   « backwards » : une fois l'animation finie, le survol reprend la main sur transform. */
+.projectCard {
+  animation: cardIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(min(var(--i, 0), 8) * 55ms);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
+.projectCard:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
 .projectCard:hover {
   border-color: var(--card-accent-border, var(--accent));
   transform: translateY(-3px);
@@ -117,7 +132,12 @@
     transition: none;
   }
 
+  .projectCard {
+    animation: none;
+  }
+
   .projectCard:hover,
+  .projectCard:active,
   .projectCard:hover .cover img {
     transform: none;
   }
