@@ -54,7 +54,7 @@ function HowItWorks() {
 
       <div className={classes.grid}>
         {STEPS.map((step, index) => (
-          <div key={step.id} className={classes.step} style={{ transitionDelay: `${index * 100}ms` }}>
+          <div key={step.id} className={classes.step} style={{ transitionDelay: `${index * 100}ms`, '--i': index }}>
             <div className={classes.iconBox} aria-hidden="true">
               <step.Icon size={22} strokeWidth={1.75} />
             </div>
