@@ -656,5 +656,12 @@
     "statsViews7": "{{count}} this week",
     "statsLocked": "See who's interested in your project: views, visitors and requests, with Hive+.",
     "plusBadge": "Hive+"
+  },
+  "seo": {
+    "projectsTitle": "Projects to join",
+    "projectsDescription": "Browse open projects on Hive and join a team: associations, side projects, startups, events. Filter by topic and region.",
+    "billingTitle": "Hive+ and Boost",
+    "billingDescription": "Hive stays free to create and join projects. Hive+ and Boost help your project reach the right people faster.",
+    "notFoundTitle": "Page not found"
   }
 }

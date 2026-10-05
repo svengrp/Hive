@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
 import HiveRating from "./HiveRating";
 import ProjectCard from "./ProjectCard";
+import { useSeo } from "../lib/seo";
 import classes from "./PublicProfileView.module.css";
 
 function getDisplayName(profile, defaultName) {
@@ -36,6 +37,8 @@ export default function PublicProfileView() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Profils de personnes : jamais indexés (vie privée), nginx ajoute aussi X-Robots-Tag
+  useSeo({ title: getDisplayName(profile, ""), noindex: true });
 
   useEffect(() => {
     Promise.all([

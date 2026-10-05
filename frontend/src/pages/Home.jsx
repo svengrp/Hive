@@ -5,10 +5,12 @@ import { useTranslation } from 'react-i18next';
 import MapView from '../components/MapView';
 import HowItWorks from '../components/HowItWorks';
 import HeroNetwork from '../components/HeroNetwork';
+import { useSeo } from '../lib/seo';
 import classes from './Home.module.css';
 
 function Home() {
   const { t } = useTranslation();
+  useSeo({ path: '/' });
   const heroRef = useRef(null);
   const mainWords = t("home.titleMain").split(' ');
   const accentWords = t("home.titleAccent").split(' ');

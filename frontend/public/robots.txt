@@ -1,3 +1,19 @@
 # https://www.robotstxt.org/robotstxt.html
+# Pages publiques : accueil, projets, détail d'un projet, abonnement.
+# Les pages privées ou sans intérêt pour la recherche ne sont pas explorées.
+# Les profils (/users/…) restent explorables mais sont marqués noindex (en-tête nginx).
 User-agent: *
-Disallow:
+Disallow: /profile
+Disallow: /messages
+Disallow: /manage-users
+Disallow: /create-project
+Disallow: /projects/*/edit
+Disallow: /login
+Disallow: /auth/
+Disallow: /forgotpassword
+Disallow: /reset-password
+Disallow: /*?status=
+
+# Le front est un site statique (Render) : le sitemap est servi directement par l'API.
+# Un sitemap déclaré ici peut être sur un autre domaine (sitemaps.org, « cross submits »).
+Sitemap: https://hive-1-bkab.onrender.com/api/seo/sitemap.xml

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
@@ -8,8 +8,39 @@
     <meta name="theme-color" content="#16120e" />
     <meta
       name="description"
-      content="Hive : trouve les personnes qu'il te faut pour faire avancer ton projet."
+      content="Trouve les bonnes personnes pour faire naître ton projet : coéquipiers, bénévoles, associés. Projets près de chez toi, en Suisse romande et ailleurs."
     />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://hive-app.ch/" />
+
+    <!-- Aperçu des liens partagés (LinkedIn, WhatsApp, Facebook, X…).
+         Mis à jour par src/lib/seo.js ; les robots de partage reçoivent la version
+         propre à chaque projet via nginx → /api/seo/share/projects/:id -->
+    <meta property="og:site_name" content="Hive" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_CH" />
+    <meta property="og:title" content="Hive — Trouve les bonnes personnes pour ton projet" />
+    <meta property="og:description" content="Trouve les bonnes personnes pour faire naître ton projet : coéquipiers, bénévoles, associés. Projets près de chez toi, en Suisse romande et ailleurs." />
+    <meta property="og:url" content="https://hive-app.ch/" />
+    <meta property="og:image" content="https://hive-app.ch/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Hive — Réunir les bonnes personnes autour de n'importe quel projet" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Hive — Trouve les bonnes personnes pour ton projet" />
+    <meta name="twitter:description" content="Trouve les bonnes personnes pour faire naître ton projet : coéquipiers, bénévoles, associés. Projets près de chez toi, en Suisse romande et ailleurs." />
+    <meta name="twitter:image" content="https://hive-app.ch/og-image.png" />
+
+    <!-- Données structurées : nom du site et organisation (résultats Google) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          { "@type": "WebSite", "name": "Hive", "url": "https://hive-app.ch/", "inLanguage": ["fr", "en"] },
+          { "@type": "Organization", "name": "Hive", "url": "https://hive-app.ch/", "logo": "https://hive-app.ch/logo512.png" }
+        ]
+      }
+    </script>
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
@@ -27,7 +58,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>Hive</title>
+    <title>Hive — Trouve les bonnes personnes pour ton projet</title>
   </head>
   <body>
     <script>

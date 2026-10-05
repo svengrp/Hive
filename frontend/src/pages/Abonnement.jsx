@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Check, CircleAlert, Clock, Rocket } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fetchMyBilling, fetchPlans, formatPrice, openPortal, startCheckout } from "../lib/billing";
+import { useSeo } from "../lib/seo";
 import classes from "./Abonnement.module.css";
 
 /* Marque Hive (trois alvéoles) pour signer l'offre Hive+ */
@@ -48,6 +49,7 @@ function Countdown({ endsAt, onEnd }) {
 export default function Abonnement() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  useSeo({ title: t("seo.billingTitle"), description: t("seo.billingDescription"), path: "/abonnement" });
   const [searchParams] = useSearchParams();
   const status = searchParams.get("status");
   const [plans, setPlans] = useState(null);

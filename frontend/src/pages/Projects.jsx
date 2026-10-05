@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import ProjectCard from "../components/ProjectCard";
+import { useSeo } from "../lib/seo";
 import classes from "./Projects.module.css";
 
 // Only the most-used themes are shown up front; the rest live behind
@@ -19,6 +20,7 @@ export default function Projects() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
+  useSeo({ title: t("seo.projectsTitle"), description: t("seo.projectsDescription"), path: "/projects" });
 
   const [projects, setProjects] = useState([]);
   const [total, setTotal] = useState(0);

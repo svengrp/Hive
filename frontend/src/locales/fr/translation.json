@@ -656,5 +656,12 @@
     "statsViews7": "{{count}} cette semaine",
     "statsLocked": "Vois qui s'intéresse à ton projet : vues, visiteurs et demandes, avec Hive+.",
     "plusBadge": "Hive+"
+  },
+  "seo": {
+    "projectsTitle": "Projets à rejoindre",
+    "projectsDescription": "Parcours les projets ouverts sur Hive et rejoins une équipe : associations, side projects, startups, événements. Filtre par thème et par région.",
+    "billingTitle": "Hive+ et Boost",
+    "billingDescription": "Hive reste gratuit pour créer et rejoindre des projets. Hive+ et le Boost aident ton projet à être vu plus vite par les bonnes personnes.",
+    "notFoundTitle": "Page introuvable"
   }
 }

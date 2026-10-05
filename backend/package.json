@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "stripe:setup": "node scripts/setupStripe.js"
+    "stripe:setup": "node scripts/setupStripe.js",
+    "test": "node --test tests/"
   },
   "keywords": [],
   "author": "",

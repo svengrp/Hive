@@ -59,6 +59,7 @@ const messagesRoutes = require('./routes/messages');
 const requestsRoutes = require('./routes/request')
 const workspaceRoutes = require('./routes/workspace');
 const billingRoutes = require('./routes/billing');
+const seoRoutes = require('./routes/seo');
 // ==============================
 // Montage des routes
 // ==============================
@@ -70,6 +71,7 @@ app.use('/api/messages', messagesRoutes);
 app.use('/api/requests', requestsRoutes);
 app.use('/api/workspace', workspaceRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/seo', seoRoutes);
 app.get('/health', (_req, res) => res.send('OK'));
 app.get('/', (_req, res) => res.send('API Hive en ligne'));
 

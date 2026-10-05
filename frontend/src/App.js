@@ -17,8 +17,17 @@ import MessagesPage from "./pages/MessagesPage";
 import Abonnement from "./pages/Abonnement";
 import OAuthCallback from "./pages/OAuthCallback";
 import BottomNav from "./components/BottomNav";
+import { useTranslation } from "react-i18next";
+import { useSeo } from "./lib/seo";
 
 import "./App.css";
+
+/* 404 : jamais indexée */
+function NotFound() {
+  const { t } = useTranslation();
+  useSeo({ title: t("seo.notFoundTitle"), noindex: true });
+  return <h1>{t("seo.notFoundTitle")}</h1>;
+}
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -48,7 +57,7 @@ export default function App() {
           <Route path="/forgotpassword" element={user ? <Navigate to="/profile" replace /> : <ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          <Route path="*" element={<h1>Page introuvable</h1>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <BottomNav />

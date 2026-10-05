@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { ArrowLeft, Check, Clock, DollarSign, GitBranch, MapPin, Pencil, Star, UserPlus, UserRound, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useSeo } from "../lib/seo";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import BaseMapLayers from "../components/BaseMapLayers";
@@ -85,6 +86,14 @@ export default function ProjectDetails() {
       .catch(() => setError(t("projectDetails.notFound")))
       .finally(() => setLoading(false));
   }, [id, t]);
+
+  // Seuls les projets ouverts et publics sont indexés (même règle que le sitemap)
+  useSeo({
+    title: project?.title || (error ? t("seo.notFoundTitle") : ""),
+    description: project?.description,
+    path: `/projects/${id}`,
+    noindex: !!error || (!!project && (project.visibility !== "public" || project.status !== "open")),
+  });
 
   useEffect(() => {
     if (!project || !user) return;
