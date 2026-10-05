@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react';
-import { Compass, Handshake, Sprout } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import classes from './HowItWorks.module.css';
+import discoverIcon from '../assets/steps/discover.png';
+import joinIcon from '../assets/steps/join.png';
+import launchIcon from '../assets/steps/launch.png';
 
-// Découvrir, rejoindre, faire naître : une icône par geste, toutes dans la même alvéole.
+// Découvrir, rejoindre, faire naître : icônes 3D (verre miel sur alvéole), même série.
 const STEPS = [
-  { id: 'discover', Icon: Compass, titleKey: 'howItWorks.step1Title', descriptionKey: 'howItWorks.step1Description' },
-  { id: 'join', Icon: Handshake, titleKey: 'howItWorks.step2Title', descriptionKey: 'howItWorks.step2Description' },
-  { id: 'launch', Icon: Sprout, titleKey: 'howItWorks.step3Title', descriptionKey: 'howItWorks.step3Description' },
+  { id: 'discover', icon: discoverIcon, titleKey: 'howItWorks.step1Title', descriptionKey: 'howItWorks.step1Description' },
+  { id: 'join', icon: joinIcon, titleKey: 'howItWorks.step2Title', descriptionKey: 'howItWorks.step2Description' },
+  { id: 'launch', icon: launchIcon, titleKey: 'howItWorks.step3Title', descriptionKey: 'howItWorks.step3Description' },
 ];
 
 /* Section "sales pitch" affichée entre le hero et la carte : présente le principe
@@ -54,12 +56,8 @@ function HowItWorks() {
       <div className={classes.grid}>
         {STEPS.map((step, index) => (
           <div key={step.id} className={classes.step} style={{ transitionDelay: `${index * 100}ms` }}>
-            <div className={classes.cell} style={{ '--i': index }} aria-hidden="true">
-              <div className={classes.cellBody}>
-                <span className={classes.cellFace}>
-                  <step.Icon size={24} strokeWidth={1.9} className={classes.cellIcon} />
-                </span>
-              </div>
+            <div className={classes.cell} style={{ '--i': index }}>
+              <img src={step.icon} alt="" width="96" height="96" className={classes.cellImage} loading="lazy" />
             </div>
             <h3 className={classes.stepTitle}>{t(step.titleKey)}</h3>
             <p className={classes.stepDescription}>{t(step.descriptionKey)}</p>
