@@ -23,6 +23,7 @@ export default function RegisterForm() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendingCode, setResendingCode] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const navigate = useNavigate();
   const { register, verifyEmail, resendVerificationEmail, login } = useAuth();
@@ -72,9 +73,14 @@ export default function RegisterForm() {
       return;
     }
 
+    if (!acceptTerms) {
+      setError(t("legal.consentRequired"));
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await register({ email: normalizedEmail, password });
+      const response = await register({ email: normalizedEmail, password, acceptTerms });
       setSuccess(response?.message || t("register.verifySuccess"));
       setStep("verify");
     } catch (err) {
@@ -185,10 +191,27 @@ export default function RegisterForm() {
               <p className={classes.hint}>{t("register.passwordMismatch")}</p>
             )}
 
+            {/* Consentement explicite (LPD / RGPD) : conditions, confidentialité, âge minimum */}
+            <label className={classes.consent}>
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => { setAcceptTerms(e.target.checked); setError(""); }}
+                required
+              />
+              <span>
+                {t("legal.consentBefore")}{" "}
+                <Link to="/conditions" target="_blank" rel="noopener">{t("legal.termsTitle")}</Link>{" "}
+                {t("legal.consentAnd")}{" "}
+                <Link to="/confidentialite" target="_blank" rel="noopener">{t("legal.privacyTitle")}</Link>
+                {t("legal.consentAfter")}
+              </span>
+            </label>
+
             {error && <p className={classes.error} role="alert">{error}</p>}
             {success && <p className={classes.success} role="status">{success}</p>}
 
-            <button type="submit" className={classes.registerBtn} disabled={loading || computeEntropy(password) < 36 || passwordMismatch}>
+            <button type="submit" className={classes.registerBtn} disabled={loading || computeEntropy(password) < 36 || passwordMismatch || !acceptTerms}>
               {loading ? t("register.loadingCreate") : t("register.submitCreate")}
             </button>
           </form>

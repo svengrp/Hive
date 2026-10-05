@@ -4,7 +4,7 @@ import { MapContainer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MagnifyingGlass } from 'react-loader-spinner';
-import { MapPin, Users, Calendar, X, ArrowUp, Maximize2, Minimize2 } from 'lucide-react';
+import { MapPin, Users, Calendar, X, ArrowUp, Maximize2, Minimize2, LocateFixed } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../lib/api';
@@ -316,14 +316,18 @@ function MapView() {
       .finally(() => setLoadingProjects(false));
   }, []);
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => { setUserLocation([pos.coords.latitude, pos.coords.longitude]); },
-        (err) => console.error('Erreur de géolocalisation :', err)
-      );
-    }
-  }, []);
+  // Position demandée seulement au clic sur « Autour de moi » (LPD / RGPD : information
+  // préalable, pas de demande surprise). Elle sert à centrer la carte, n'est ni envoyée ni enregistrée.
+  const [locateStatus, setLocateStatus] = useState(''); // '' | 'locating' | 'done' | 'denied'
+  const locateMe = () => {
+    if (!navigator.geolocation) { setLocateStatus('denied'); return; }
+    setLocateStatus('locating');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setUserLocation([pos.coords.latitude, pos.coords.longitude]); setLocateStatus('done'); },
+      () => setLocateStatus('denied'),
+      { maximumAge: 300000, timeout: 10000 }
+    );
+  };
 
   // Plein écran : bloque le défilement de la page et se ferme avec Échap.
   useEffect(() => {
@@ -413,6 +417,23 @@ function MapView() {
             </button>
           </p>
         )}
+      </div>
+
+      <div className={classes.locate}>
+        {(locateStatus === 'denied' || locateStatus === '') && (
+          <p className={classes.locateHint} role={locateStatus === 'denied' ? 'alert' : undefined}>
+            {locateStatus === 'denied' ? t("map.locateDenied") : t("map.locateHint")}
+          </p>
+        )}
+        <button
+          type="button"
+          className={classes.locateBtn}
+          onClick={locateMe}
+          disabled={locateStatus === 'locating'}
+        >
+          <LocateFixed size={16} aria-hidden="true" />
+          {locateStatus === 'locating' ? t("map.locating") : t("map.locate")}
+        </button>
       </div>
 
       {isTouch && (

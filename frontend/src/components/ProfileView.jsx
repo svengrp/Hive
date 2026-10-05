@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import HiveRating from "./HiveRating";
 import SubscriptionCard from "./SubscriptionCard";
+import PrivacySettings from "./PrivacySettings";
 import UserAvatar from "./UserAvatar";
 import classes from "./ProfileView.module.css";
 import ProjectCard from "./ProjectCard";
@@ -526,6 +527,10 @@ export default function Profile() {
             />
           </label>
           {notifError && <p className={classes.switchError} role="alert">{t("profile.notifSaveError")}</p>}
+        </section>
+        <section className={classes.section}>
+          <h2 className={classes.sectionTitle}>{t("privacy.title")}</h2>
+          <PrivacySettings />
         </section>
       </div>
 

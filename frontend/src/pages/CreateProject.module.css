@@ -371,6 +371,13 @@
   font-size: 12px;
 }
 
+.locationPrivacy {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);

@@ -1,6 +1,10 @@
 const User = require("../models/User");
 const Project = require("../models/Project");
 const Rating = require("../models/Rating");
+const Message = require("../models/Message");
+const ProjectRequest = require("../models/ProjectRequest");
+const ProjectHistory = require("../models/ProjectHistory");
+const { deleteUserAccount } = require("../utils/accountDeletion");
 const bcrypt = require("bcrypt");
 const { containsProfanity } = require('../utils/profanityFilter');
 
@@ -19,7 +23,8 @@ function sanitizePublicProfile(user) {
     languages: user.languages,
     education: user.education,
     skills: user.skills,
-    address: user.address,
+    // Vie privée : jamais la rue ni le code postal en public, seulement ville et pays
+    address: { city: user.address?.city || "", country: user.address?.country || "" },
     reputation: user.reputation,
     createdAt: user.createdAt,
   };
@@ -186,4 +191,67 @@ exports.getUserRatings = async (req, res) => {
     console.error('getUserRatings error:', err);
     return res.status(500).json({ message: 'Erreur serveur' });
   }
+};
+
+/* ==============================
+   DROITS LPD / RGPD
+   ============================== */
+
+// Champs internes jamais exportés (secrets, codes à usage unique, verrouillage)
+const EXPORT_EXCLUDED = '-passwordHash -emailVerificationCodeHash -resetCodeHash -twoFactorCode -loginAttempts -lockUntil';
+
+// GET /user/me/export — droit d'accès et portabilité (LPD art. 25 et 28, RGPD art. 15 et 20)
+exports.exportMyData = async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const user = await User.findById(userId).select(EXPORT_EXCLUDED).lean();
+  if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
+
+  const [projects, requests, messages, ratingsGiven, history] = await Promise.all([
+    Project.find({ ownerId: userId }).lean(),
+    ProjectRequest.find({ senderId: userId }).select('projectId message status createdAt').lean(),
+    Message.find({ senderId: userId, deleted: { $ne: true } }).select('content conversationId receiverId createdAt').lean(),
+    Rating.find({ raterId: userId }).lean(),
+    ProjectHistory.find({ userId }).select('projectId viewedAt').lean(),
+  ]);
+
+  const data = {
+    exportedAt: new Date().toISOString(),
+    profile: user,
+    projects,
+    joinRequests: requests,
+    messages,
+    ratingsGiven,
+    projectViews: history,
+  };
+  res.set('Content-Disposition', 'attachment; filename="hive-mes-donnees.json"');
+  return res.status(200).json(data);
+};
+
+// DELETE /user/me — droit à l'effacement (LPD art. 32, RGPD art. 17)
+// Confirmation : mot de passe, ou email pour un compte créé via Google/GitHub (pas de mot de passe).
+exports.deleteMyAccount = async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
+  if (user.role === 'admin') {
+    return res.status(403).json({ message: "Un compte administrateur ne peut pas se supprimer lui-même." });
+  }
+
+  const { password, email } = req.body || {};
+  const confirmed = user.passwordHash
+    ? typeof password === 'string' && await bcrypt.compare(password, user.passwordHash)
+    : typeof email === 'string' && email.trim().toLowerCase() === user.email.toLowerCase();
+  // 403 et non 401 : côté front, un 401 déconnecte automatiquement la personne
+  if (!confirmed) {
+    return res.status(403).json({ message: user.passwordHash ? "Mot de passe incorrect" : "L'email ne correspond pas à ce compte" });
+  }
+
+  try {
+    await deleteUserAccount(user);
+  } catch (err) {
+    // L'abonnement est résilié en premier : s'il échoue, rien n'a été supprimé
+    console.error('deleteMyAccount error:', err.message);
+    return res.status(502).json({ message: "La suppression n'a pas pu aboutir. Réessaie dans quelques minutes ou écris à contact@hive-app.ch." });
+  }
+  return res.status(200).json({ message: "Compte supprimé" });
 };

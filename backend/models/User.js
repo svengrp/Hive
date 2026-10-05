@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema({
   // --- Statut du profil ---
   profileCompleted: { type: Boolean, default: false },
 
+  // --- Consentement (preuve exigée par le RGPD art. 7) : date et version des conditions acceptées
+  termsAcceptedAt: { type: Date, default: null },
+  termsVersion: { type: String, default: null },
+
   // --- Messagerie ---
   blockedUsers:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   archivedDMs:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

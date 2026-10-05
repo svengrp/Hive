@@ -33,12 +33,36 @@ test("TF-01 — permet à un utilisateur de s'inscrire", async () => {
   await userEvent.type(screen.getByLabelText("Email"), "newuser@mail.com");
   await userEvent.type(screen.getByLabelText("Mot de passe"), "Password1!");
   await userEvent.type(screen.getByLabelText("Confirmer le mot de passe"), "Password1!");
+  await userEvent.click(screen.getByRole("checkbox"));
   await userEvent.click(screen.getByRole("button", { name: /créer mon compte/i }));
 
   expect(mockRegister).toHaveBeenCalledWith({
     email: "newuser@mail.com",
     password: "Password1!",
+    acceptTerms: true,
   });
+});
+
+// Consentement LPD / RGPD : impossible de s'inscrire sans accepter les conditions
+test("inscription bloquée tant que les conditions ne sont pas acceptées", async () => {
+  render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <RegisterForm />
+    </MemoryRouter>
+  );
+
+  await userEvent.type(screen.getByLabelText("Email"), "newuser@mail.com");
+  await userEvent.type(screen.getByLabelText("Mot de passe"), "Password1!");
+  await userEvent.type(screen.getByLabelText("Confirmer le mot de passe"), "Password1!");
+
+  const submitBtn = screen.getByRole("button", { name: /créer mon compte/i });
+  expect(submitBtn).toBeDisabled();
+  expect(screen.getByRole("link", { name: /conditions/i })).toHaveAttribute("href", "/conditions");
+  expect(screen.getByRole("link", { name: /confidentialité/i })).toHaveAttribute("href", "/confidentialite");
+
+  await userEvent.click(screen.getByRole("checkbox"));
+  expect(submitBtn).not.toBeDisabled();
+  expect(mockRegister).not.toHaveBeenCalled();
 });
 
 // TF-01 — étape OTP
@@ -54,6 +78,7 @@ test("TF-01 — affiche l'étape de vérification email après inscription réus
   await userEvent.type(screen.getByLabelText("Email"), "newuser@mail.com");
   await userEvent.type(screen.getByLabelText("Mot de passe"), "Password1!");
   await userEvent.type(screen.getByLabelText("Confirmer le mot de passe"), "Password1!");
+  await userEvent.click(screen.getByRole("checkbox"));
   await userEvent.click(screen.getByRole("button", { name: /créer mon compte/i }));
 
   await waitFor(() =>
@@ -83,6 +108,7 @@ test("TF-39 — active le bouton si le mot de passe est suffisamment fort", asyn
   );
 
   await userEvent.type(screen.getByLabelText("Mot de passe"), "Password1!");
+  await userEvent.click(screen.getByRole("checkbox"));
 
   const submitBtn = screen.getByRole("button", { name: /créer mon compte/i });
   expect(submitBtn).not.toBeDisabled();

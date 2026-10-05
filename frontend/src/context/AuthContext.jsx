@@ -24,10 +24,10 @@ export default function AuthProvider({ children }) {
   // AUTH CLASSIQUE
   // ------------------------
 
-  const register = async ({ email, password }) => {
+  const register = async ({ email, password, acceptTerms }) => {
     return api("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, acceptTerms }),
     });
   };
 

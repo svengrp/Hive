@@ -5,6 +5,7 @@ const sendEmail = require("../utils/sendEmail");
 const User = require('../models/User');
 const { registrationsTotal, loginsTotal } = require('../metric');
 const oauth = require('../utils/oauthProviders');
+const { TERMS_VERSION } = require('../utils/legal');
 
 /* Regex de validation — email RFC-compatible, mot de passe 8-15 cars avec maj/min/chiffre/spécial */
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -44,11 +45,16 @@ async function sendVerificationEmail(user, verificationCode) {
 // ==============================
 exports.register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, acceptTerms } = req.body;
     const normalizedEmail = email?.trim().toLowerCase();
 
     if (!normalizedEmail || !password) {
       return res.status(400).json({ error: 'Email et mot de passe requis' });
+    }
+
+    // Consentement explicite (conditions, confidentialité, 16 ans ou plus)
+    if (acceptTerms !== true) {
+      return res.status(400).json({ error: "Tu dois accepter les conditions d'utilisation et la politique de confidentialité." });
     }
 
     if (!EMAIL_REGEX.test(normalizedEmail)) {
@@ -62,7 +68,6 @@ exports.register = async (req, res) => {
     }
 
     let user = await User.findOne({ email: normalizedEmail });
-    console.log("REGISTER existing user:", user);
 
     if (user && user.emailVerified) {
       return res.status(409).json({ error: 'Cet email existe déjà' });
@@ -82,8 +87,9 @@ exports.register = async (req, res) => {
     }
 
     user.emailVerified = false;
+    user.termsAcceptedAt = new Date();
+    user.termsVersion = TERMS_VERSION;
     const verificationCode = await assignEmailVerificationCode(user);
-    console.log("REGISTER saving user in DB:", normalizedEmail);
 
     await user.save();
     await sendVerificationEmail(user, verificationCode);
@@ -245,6 +251,9 @@ async function findOrCreateOAuthUser(providerName, profile) {
       lastName: profile.lastName,
       ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl } : {}),
       [idField]: profile.id,
+      // Conditions affichées à côté des boutons Google/GitHub (« En continuant, tu acceptes… »)
+      termsAcceptedAt: new Date(),
+      termsVersion: TERMS_VERSION,
     });
     registrationsTotal.inc();
   }

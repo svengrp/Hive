@@ -273,3 +273,29 @@
 .registerBtn:active:not(:disabled) {
   transform: scale(0.98);
 }
+
+/* Case de consentement (conditions, confidentialité, 16 ans ou plus) */
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.consent input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.consent a {
+  color: var(--accent);
+  font-weight: 600;
+}

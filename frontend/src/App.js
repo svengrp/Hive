@@ -17,6 +17,8 @@ import MessagesPage from "./pages/MessagesPage";
 import Abonnement from "./pages/Abonnement";
 import OAuthCallback from "./pages/OAuthCallback";
 import BottomNav from "./components/BottomNav";
+import Footer from "./components/Footer";
+import { PrivacyPolicy, Terms, Imprint } from "./pages/Legal";
 import { useTranslation } from "react-i18next";
 import { useSeo } from "./lib/seo";
 
@@ -57,8 +59,14 @@ export default function App() {
           <Route path="/forgotpassword" element={user ? <Navigate to="/profile" replace /> : <ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
+          {/* Pages légales (LPD / RGPD / LCD) */}
+          <Route path="/confidentialite" element={<PrivacyPolicy />} />
+          <Route path="/conditions" element={<Terms />} />
+          <Route path="/mentions-legales" element={<Imprint />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Footer />
       </main>
       <BottomNav />
     </>

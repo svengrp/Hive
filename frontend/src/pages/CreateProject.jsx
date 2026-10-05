@@ -620,6 +620,8 @@ export default function CreateProject() {
               <span>Lat: {markerPosition[0].toFixed(5)}</span>
               <span>Lng: {markerPosition[1].toFixed(5)}</span>
             </div>
+            {/* Vie privée : l'emplacement est public sur la carte */}
+            <p className={classes.locationPrivacy}>{t("createProject.locationPrivacy")}</p>
           </div>
 
           <div className={classes.formRow}>

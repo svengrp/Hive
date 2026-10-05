@@ -53,3 +53,17 @@
   height: 1px;
   background: var(--border-soft);
 }
+
+/* Mention : continuer avec Google/GitHub vaut acceptation (un compte peut être créé) */
+.consent {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.consent a {
+  color: var(--accent);
+  font-weight: 600;
+}

@@ -616,3 +616,59 @@
     animation: none;
   }
 }
+
+/* « Autour de moi » : la position n'est demandée qu'au clic, avec son usage expliqué */
+.locate {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 430;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: min(260px, calc(100% - 40px));
+}
+
+.locateHint {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.locateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(var(--shadow-rgb), calc(0.2 * var(--shadow-k)));
+  cursor: pointer;
+}
+
+.locateBtn:active {
+  transform: scale(0.96);
+}
+
+.locateBtn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.locateBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

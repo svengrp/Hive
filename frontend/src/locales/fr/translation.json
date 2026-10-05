@@ -211,7 +211,11 @@
     "fullscreen": "Afficher la carte en plein écran",
     "exitFullscreen": "Quitter le plein écran",
     "twoFingers": "Utilise deux doigts pour déplacer la carte",
-    "credits": "Sources de la carte"
+    "credits": "Sources de la carte",
+    "locate": "Autour de moi",
+    "locating": "Localisation…",
+    "locateHint": "Ta position sert seulement à centrer la carte. Elle n’est ni envoyée ni enregistrée.",
+    "locateDenied": "Position non disponible. Tu peux explorer la carte librement."
   },
   "createProject": {
     "titleCreate": "Créer un projet",
@@ -271,7 +275,8 @@
     "sectionDetailsHint": "Facultatif.",
     "cancel": "Annuler",
     "removeItem": "Retirer {{item}}",
-    "addItem": "Ajouter ({{label}})"
+    "addItem": "Ajouter ({{label}})",
+    "locationPrivacy": "Cet emplacement est visible publiquement sur la carte. Indique un lieu public ou approximatif (quartier, ville), jamais ton domicile."
   },
   "projectDetails": {
     "loading": "Chargement…",
@@ -663,5 +668,36 @@
     "billingTitle": "Hive+ et Boost",
     "billingDescription": "Hive reste gratuit pour créer et rejoindre des projets. Hive+ et le Boost aident ton projet à être vu plus vite par les bonnes personnes.",
     "notFoundTitle": "Page introuvable"
+  },
+  "privacy": {
+    "title": "Mes données",
+    "lead": "Tu peux télécharger toutes tes données ou supprimer ton compte à tout moment.",
+    "policyLink": "Politique de confidentialité",
+    "export": "Télécharger mes données",
+    "exporting": "Préparation…",
+    "delete": "Supprimer mon compte",
+    "confirmTitle": "Supprimer définitivement ton compte ?",
+    "consequenceProjects": "Tes projets seront supprimés, avec leurs conversations, tâches et candidatures.",
+    "consequenceMessages": "Dans les projets des autres, tes messages seront remplacés par « [supprimé] ».",
+    "consequenceSubscription": "Ton abonnement Hive+ sera résilié immédiatement, sans remboursement de la période en cours.",
+    "consequenceFinal": "Cette action est définitive : ton compte ne pourra pas être récupéré.",
+    "confirmLabel": "Pour confirmer, saisis ton mot de passe (ou ton email si tu t’es inscrit avec Google ou GitHub)",
+    "cancel": "Annuler",
+    "confirmDelete": "Supprimer définitivement",
+    "deleting": "Suppression…"
+  },
+  "legal": {
+    "privacyTitle": "Politique de confidentialité",
+    "termsTitle": "Conditions d’utilisation",
+    "imprintTitle": "Mentions légales",
+    "contact": "Contact",
+    "related": "Informations légales",
+    "lastUpdate": "Dernière mise à jour",
+    "frenchPrevails": "",
+    "consentBefore": "J’ai 16 ans ou plus et j’accepte les",
+    "consentAnd": "ainsi que la",
+    "consentAfter": ".",
+    "socialConsentBefore": "En continuant avec Google ou GitHub, tu confirmes avoir 16 ans ou plus et tu acceptes les",
+    "consentRequired": "Coche la case pour accepter les conditions et confirmer que tu as 16 ans ou plus."
   }
 }

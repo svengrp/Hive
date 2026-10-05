@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api, BASE_URL } from "../lib/api";
 import classes from "./SocialLogin.module.css";
@@ -66,6 +67,15 @@ export default function SocialLogin({ rememberMe = false }) {
           </a>
         );
       })}
+
+      {/* Un compte peut être créé ici : information préalable (LPD / RGPD) */}
+      <p className={classes.consent}>
+        {t("legal.socialConsentBefore")}{" "}
+        <Link to="/conditions" target="_blank" rel="noopener">{t("legal.termsTitle")}</Link>{" "}
+        {t("legal.consentAnd")}{" "}
+        <Link to="/confidentialite" target="_blank" rel="noopener">{t("legal.privacyTitle")}</Link>
+        {t("legal.consentAfter")}
+      </p>
 
       <div className={classes.divider} role="separator">
         <span>{t("social.orEmail")}</span>

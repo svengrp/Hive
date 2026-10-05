@@ -178,7 +178,8 @@ exports.getAllProjects = async (req, res) => {
 // GET /projects/:id — détail d'un projet avec owner et participants populés
 exports.getProjectById = async (req, res) => {
   const project = await Project.findById(req.params.id)
-    .populate('ownerId', 'displayName firstName lastName avatarUrl bio skills languages address reputation createdAt plan')
+    // Vie privée : ville et pays du créateur seulement (jamais la rue ni le code postal)
+    .populate('ownerId', 'displayName firstName lastName avatarUrl bio skills languages address.city address.country reputation createdAt plan')
     .populate('participants', 'displayName firstName lastName avatarUrl');
 
   if (!project) return res.status(404).json({ error: 'Project not found' });

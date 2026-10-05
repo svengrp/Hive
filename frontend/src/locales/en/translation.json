@@ -211,7 +211,11 @@
     "fullscreen": "Show the map full screen",
     "exitFullscreen": "Exit full screen",
     "twoFingers": "Use two fingers to move the map",
-    "credits": "Map sources"
+    "credits": "Map sources",
+    "locate": "Near me",
+    "locating": "Locating…",
+    "locateHint": "Your location is only used to centre the map. It is never sent or stored.",
+    "locateDenied": "Location unavailable. You can explore the map freely."
   },
   "createProject": {
     "titleCreate": "Create a project",
@@ -271,7 +275,8 @@
     "sectionDetailsHint": "Optional.",
     "cancel": "Cancel",
     "removeItem": "Remove {{item}}",
-    "addItem": "Add ({{label}})"
+    "addItem": "Add ({{label}})",
+    "locationPrivacy": "This location is publicly visible on the map. Use a public or approximate place (neighbourhood, town), never your home."
   },
   "projectDetails": {
     "loading": "Loading…",
@@ -663,5 +668,36 @@
     "billingTitle": "Hive+ and Boost",
     "billingDescription": "Hive stays free to create and join projects. Hive+ and Boost help your project reach the right people faster.",
     "notFoundTitle": "Page not found"
+  },
+  "privacy": {
+    "title": "My data",
+    "lead": "You can download all your data or delete your account at any time.",
+    "policyLink": "Privacy policy",
+    "export": "Download my data",
+    "exporting": "Preparing…",
+    "delete": "Delete my account",
+    "confirmTitle": "Permanently delete your account?",
+    "consequenceProjects": "Your projects will be deleted, along with their conversations, tasks and requests.",
+    "consequenceMessages": "In other people’s projects, your messages will be replaced with “[deleted]”.",
+    "consequenceSubscription": "Your Hive+ subscription will be cancelled immediately, with no refund for the current period.",
+    "consequenceFinal": "This cannot be undone: your account cannot be recovered.",
+    "confirmLabel": "To confirm, enter your password (or your email if you signed up with Google or GitHub)",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete permanently",
+    "deleting": "Deleting…"
+  },
+  "legal": {
+    "privacyTitle": "Privacy policy",
+    "termsTitle": "Terms of use",
+    "imprintTitle": "Legal notice",
+    "contact": "Contact",
+    "related": "Legal information",
+    "lastUpdate": "Last updated",
+    "frenchPrevails": "This document is written in French, which is the legally binding version. Your browser can translate this page.",
+    "consentBefore": "I am 16 or older and I accept the",
+    "consentAnd": "and the",
+    "consentAfter": ".",
+    "socialConsentBefore": "By continuing with Google or GitHub, you confirm you are 16 or older and accept the",
+    "consentRequired": "Tick the box to accept the terms and confirm you are 16 or older."
   }
 }

@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Project = require('../models/Project');
+const { deleteUserAccount } = require('../utils/accountDeletion');
 
 const SENSITIVE_FIELDS = '-passwordHash -resetCodeHash -resetCodeExpire -emailVerificationCodeHash -emailVerificationExpire';
 
@@ -24,7 +25,8 @@ exports.deleteUser = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'Utilisateur introuvable' });
     if (user.role === 'admin') return res.status(403).json({ message: 'Impossible de supprimer un administrateur' });
-    await user.deleteOne();
+    // Même effacement complet que la suppression par la personne elle-même (LPD / RGPD)
+    await deleteUserAccount(user);
     return res.status(200).json({ message: 'Utilisateur supprimé' });
   } catch (err) {
     console.error('Admin deleteUser error:', err);
