@@ -54,8 +54,12 @@ function HowItWorks() {
       <div className={classes.grid}>
         {STEPS.map((step, index) => (
           <div key={step.id} className={classes.step} style={{ transitionDelay: `${index * 100}ms` }}>
-            <div className={classes.cell} aria-hidden="true">
-              <step.Icon size={22} strokeWidth={1.75} className={classes.cellIcon} />
+            <div className={classes.cell} style={{ '--i': index }} aria-hidden="true">
+              <div className={classes.cellBody}>
+                <span className={classes.cellFace}>
+                  <step.Icon size={24} strokeWidth={1.9} className={classes.cellIcon} />
+                </span>
+              </div>
             </div>
             <h3 className={classes.stepTitle}>{t(step.titleKey)}</h3>
             <p className={classes.stepDescription}>{t(step.descriptionKey)}</p>
