@@ -1,10 +1,11 @@
 /* Emails spécialisés pour les demandes de participation : notification à l'owner lors d'une nouvelle demande
-   et confirmation au demandeur lors de l'acceptation. Utilise MAIL_FROM_EMAIL comme adresse expéditrice. */
+   et confirmation au demandeur lors de l'acceptation. Expéditeur commun : utils/mailFrom.js. */
 const transporter = require('./mailer');
+const mailFrom = require('./mailFrom');
 
 async function sendJoinRequestEmail({ to, ownerName, senderName, projectTitle }) {
   await transporter.sendMail({
-    from: `"Hive" <${process.env.MAIL_FROM_EMAIL}>`,
+    from: mailFrom(),
     to,
     subject: `Nouvelle demande de participation — ${projectTitle}`,
     html: `
@@ -22,7 +23,7 @@ async function sendJoinRequestEmail({ to, ownerName, senderName, projectTitle })
 
 async function sendRequestAcceptedEmail({ to, senderName, projectTitle }) {
   await transporter.sendMail({
-    from: `"Hive" <${process.env.MAIL_FROM_EMAIL}>`,
+    from: mailFrom(),
     to,
     subject: `Demande acceptée — ${projectTitle}`,
     html: `

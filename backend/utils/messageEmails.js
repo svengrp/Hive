@@ -3,6 +3,7 @@
    et il n'a pas déjà reçu d'email pour cette conversation dans les 15 dernières minutes.
    Les erreurs sont journalisées sans jamais bloquer l'envoi du message. */
 const transporter = require('./mailer');
+const mailFrom = require('./mailFrom');
 const User = require('../models/User');
 
 const THROTTLE_MS = 15 * 60 * 1000;
@@ -62,7 +63,7 @@ async function notifyNewMessage({ io, recipientIds, sender, key, title, content,
 
       const { subject, html } = buildEmail({ recipient, senderName, title, preview, url });
       await transporter.sendMail({
-        from: `"Hive" <${process.env.MAIL_FROM_EMAIL || process.env.MAIL_USER}>`,
+        from: mailFrom(),
         to: recipient.email,
         subject,
         html,
