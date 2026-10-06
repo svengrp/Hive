@@ -203,6 +203,7 @@ export function Terms() {
         Hive permet de publier des projets (associatifs, sportifs, culturels, professionnels…), de trouver des
         personnes pour y participer, de candidater, d'échanger par messagerie et d'organiser le projet en équipe.
         La création et la participation aux projets sont gratuites. Des options payantes (Hive+ et Boost) sont proposées.
+        Hive s'adresse aux personnes résidant en Suisse.
       </p>
 
       <h2>2. Ton compte</h2>
@@ -253,7 +254,7 @@ export function Terms() {
       <ul>
         <li>Hive+ est un abonnement mensuel ou annuel donnant accès aux avantages décrits sur la page Abonnement, dont des crédits de Boost.</li>
         <li><strong>Renouvellement automatique</strong> à la fin de chaque période, au prix en vigueur, jusqu'à résiliation.</li>
-        <li><strong>Résiliation</strong> à tout moment depuis la section Abonnement de ton profil. Elle prend effet à la fin de la période déjà payée ; tu gardes Hive+ jusque-là. La période en cours n'est pas remboursée, sauf droit de rétractation ci-dessous.</li>
+        <li><strong>Résiliation</strong> à tout moment depuis la section Abonnement de ton profil. Elle prend effet à la fin de la période déjà payée ; tu gardes Hive+ jusque-là. La période en cours n'est pas remboursée.</li>
         <li>En cas de changement de prix, nous t'en informons au moins 30 jours avant ton prochain renouvellement ; tu peux résilier avant.</li>
         <li>Si un paiement échoue, l'abonnement peut être suspendu jusqu'à régularisation.</li>
       </ul>
@@ -262,12 +263,12 @@ export function Terms() {
         Un Boost met un projet en avant pendant la durée indiquée lors de l'achat (actuellement 48 heures).
         Il démarre immédiatement après le paiement ou l'utilisation d'un crédit.
       </p>
-      <h3>Droit de rétractation (consommateurs résidant dans l'Union européenne)</h3>
+      <h3>Exécution immédiate et remboursement</h3>
       <p>
-        Si tu es un consommateur résidant dans l'UE, tu disposes d'un délai de 14 jours à compter de l'achat pour
-        te rétracter, en nous écrivant à <Mail />. En demandant l'activation immédiate de Hive+ ou d'un Boost, tu
-        acceptes que le service commence avant la fin de ce délai : en cas de rétractation, le montant correspondant
-        à la période déjà fournie reste dû, et un Boost entièrement exécuté n'est plus rétractable.
+        Le droit suisse ne prévoit pas de droit de rétractation pour les achats en ligne. Au moment du paiement,
+        tu demandes expressément que Hive+ ou le Boost démarre immédiatement. Les montants payés ne sont donc pas
+        remboursables, sauf si le service n'a pas pu être fourni à cause d'une erreur de notre part : dans ce cas,
+        écris-nous à <Mail /> et nous te rembourserons.
       </p>
       <h3>TVA</h3>
       <p>Hive n'est actuellement pas assujetti à la TVA ; les prix affichés sont des prix finaux.</p>

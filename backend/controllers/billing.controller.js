@@ -13,6 +13,25 @@ const {
 const front = () => process.env.FRONT_URL || 'http://localhost:3000';
 const disabled = (res) => res.status(503).json({ code: 'billing_disabled', message: 'Les paiements ne sont pas encore activés.' });
 
+/* Consentement sur la page de paiement Stripe : exécution immédiate et acceptation des conditions.
+   Le texte au-dessus du bouton « Payer » est toujours affiché. La case à cocher Stripe n'est activée
+   qu'avec STRIPE_TERMS_CONSENT=true : elle exige l'URL des conditions dans Stripe
+   (Paramètres → Informations publiques), sinon Stripe refuse de créer le paiement. */
+const checkoutConsent = () => {
+  const terms = `${front()}/conditions`;
+  const message = `En payant, tu demandes que le service démarre immédiatement. Hive+ se renouvelle automatiquement et se résilie à tout moment depuis ton profil ; la période en cours et les Boosts ne sont pas remboursables. Conditions : ${terms}`;
+  if (process.env.STRIPE_TERMS_CONSENT !== 'true') {
+    return { custom_text: { submit: { message } } };
+  }
+  return {
+    consent_collection: { terms_of_service: 'required' },
+    custom_text: {
+      submit: { message: 'Le service démarre immédiatement après le paiement. Hive+ se renouvelle automatiquement et se résilie à tout moment depuis ton profil.' },
+      terms_of_service_acceptance: { message: `J'accepte les [conditions d'utilisation et de vente](${terms}) et je demande l'activation immédiate ; la période en cours et les Boosts ne sont pas remboursables.` },
+    },
+  };
+};
+
 /* Prolonge la mise en avant d'un projet de BOOST_HOURS (à partir de maintenant ou de la fin du boost en cours) */
 async function applyBoost(projectId) {
   const project = await Project.findById(projectId).select('boostedUntil');
@@ -106,6 +125,7 @@ exports.createCheckout = async (req, res) => {
         : { payment_intent_data: { metadata } }),
       client_reference_id: String(user._id),
       locale: 'fr',
+      ...checkoutConsent(),
       success_url: `${front()}${successPath}`,
       cancel_url: `${front()}${cancelPath}`,
     });
