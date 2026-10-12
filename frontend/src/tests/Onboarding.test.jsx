@@ -185,3 +185,15 @@ test("une fois connecté, les réponses sont envoyées une seule fois au compte"
   expect(JSON.parse(options.body).country).toBeTruthy();
   expect(mockUpdateUser).toHaveBeenCalledWith(expect.objectContaining({ interests: ["music"] }));
 });
+
+test("la langue se change en haut du parcours, le français est actif par défaut", () => {
+  const { useTranslation } = require("react-i18next");
+  renderAt("/");
+  const group = screen.getByRole("group", { name: "Langue" });
+  expect(group).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Français" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "English" })).toHaveAttribute("aria-pressed", "false");
+
+  click("English");
+  expect(useTranslation().i18n.changeLanguage).toHaveBeenCalledWith("en");
+});

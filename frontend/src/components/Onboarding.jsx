@@ -18,6 +18,12 @@ const OnboardingMap = lazy(() => import("./OnboardingMap"));
 
 const GOAL_ICONS = { join: Search, launch: Rocket, both: Compass };
 
+// Nom de chaque langue écrit dans cette langue
+const LANGUAGES = [
+  { code: "fr", label: "Français" },
+  { code: "en", label: "English" },
+];
+
 function countryName(code, language) {
   if (!code) return "";
   try {
@@ -234,6 +240,21 @@ export default function Onboarding() {
           <span className={classes.logo} style={{ "--logo-url": `url(${logoHive})` }} aria-hidden="true" />
           Hive
         </span>
+        <div className={classes.lang} role="group" aria-label={t("nav.language")}>
+          {LANGUAGES.map(({ code, label }) => (
+            <button
+              key={code}
+              type="button"
+              lang={code}
+              className={`${classes.langBtn} ${language === code ? classes.langBtnActive : ""}`}
+              aria-pressed={language === code}
+              aria-label={label}
+              onClick={() => i18n.changeLanguage(code)}
+            >
+              {code.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <button type="button" className={classes.later} onClick={skipAll}>
           {t("onboarding.later")}
         </button>
