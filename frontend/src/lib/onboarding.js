@@ -1,3 +1,4 @@
+import { api } from "./api";
 import { cleanInterests } from "./interests";
 
 /* Parcours de bienvenue : réponses gardées dans le navigateur jusqu'à la création
@@ -54,6 +55,46 @@ export function writeOnboarding(state) {
    quelque chose : l'accueil lui parle directement au lieu de lui présenter Hive. */
 export function isKnownVisitor(state) {
   return state.status !== "pending" && hasAnswers(state);
+}
+
+export function countryName(code, language) {
+  if (!code) return "";
+  try {
+    return new Intl.DisplayNames([language], { type: "region" }).of(code) || code;
+  } catch {
+    return code;
+  }
+}
+
+/* Envoie les réponses du parcours au compte qui vient de se connecter, une seule fois.
+   Appelé pendant la connexion, avant d'ouvrir le profil : la page Profil charge donc
+   des données déjà complètes. Renvoie le compte mis à jour, ou null s'il n'y avait rien
+   à envoyer. Un seul envoi à la fois, même si plusieurs appels arrivent ensemble. */
+let pendingSync = null;
+
+export function syncOnboarding(language = document.documentElement.lang || "fr") {
+  const state = readOnboarding();
+  if (state.synced || !hasAnswers(state)) return Promise.resolve(null);
+  if (pendingSync) return pendingSync;
+
+  pendingSync = api("/user/onboarding", {
+    method: "PUT",
+    body: JSON.stringify({
+      firstName: state.firstName.trim(),
+      interests: state.interests,
+      country: countryName(state.country, language),
+      city: state.city.trim(),
+      goal: state.goal,
+    }),
+  })
+    .then((saved) => {
+      if (!saved) return null;
+      const current = readOnboarding();
+      writeOnboarding({ ...current, synced: true, status: current.status === "pending" ? "done" : current.status });
+      return saved;
+    })
+    .finally(() => { pendingSync = null; });
+  return pendingSync;
 }
 
 /* Des réponses à envoyer au serveur une fois connecté ? */

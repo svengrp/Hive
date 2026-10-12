@@ -6,8 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import { MAX_INTERESTS } from "../lib/interests";
 import {
-  GOALS, MAX_NAME_LENGTH, STEPS, STEP_PROGRESS, getCountries, guessCountryCode, hasAnswers,
-  locatePlace, readOnboarding, shouldShowOnboarding, writeOnboarding,
+  GOALS, MAX_NAME_LENGTH, STEPS, STEP_PROGRESS, countryName, getCountries, guessCountryCode, hasAnswers,
+  locatePlace, readOnboarding, shouldShowOnboarding, syncOnboarding, writeOnboarding,
 } from "../lib/onboarding";
 import logoHive from "../img/logoHive.svg";
 import InterestPicker from "./InterestPicker";
@@ -23,15 +23,6 @@ const LANGUAGES = [
   { code: "fr", label: "Français" },
   { code: "en", label: "English" },
 ];
-
-function countryName(code, language) {
-  if (!code) return "";
-  try {
-    return new Intl.DisplayNames([language], { type: "region" }).of(code) || code;
-  } catch {
-    return code;
-  }
-}
 
 /* Parcours de bienvenue (premier passage, sans compte) : prénom, centres d'intérêt,
    pays, objectif, puis écran final sur la carte avec l'invitation à créer un compte.
@@ -55,29 +46,20 @@ export default function Onboarding() {
 
   useEffect(() => { writeOnboarding(state); }, [state]);
 
-  // Réponses enregistrées sur le compte dès la connexion (une seule fois ; le verrou
-  // évite un second envoi si l'effet se relance pendant la requête)
-  const syncing = useRef(false);
+  // Filet de sécurité : session déjà ouverte avec des réponses pas encore envoyées
+  // (l'envoi normal se fait pendant la connexion, voir AuthContext)
   useEffect(() => {
-    if (!user || user.role === "admin" || state.synced || !hasAnswers(state) || syncing.current) return;
-    syncing.current = true;
-    api("/user/onboarding", {
-      method: "PUT",
-      body: JSON.stringify({
-        firstName: state.firstName.trim(),
-        interests: state.interests,
-        country: countryName(state.country, language),
-        city: state.city.trim(),
-        goal: state.goal,
-      }),
-    })
+    if (!user || user.role === "admin" || state.synced || !hasAnswers(state)) return;
+    let cancelled = false;
+    syncOnboarding(language)
       .then((saved) => {
-        if (!saved) return;
-        updateUser({ ...user, ...saved });
-        setState((current) => ({ ...current, synced: true, status: current.status === "pending" ? "done" : current.status }));
+        if (cancelled) return;
+        if (saved) updateUser({ ...user, ...saved });
+        // Relu depuis le stockage : l'envoi a pu être fait ailleurs (connexion)
+        setState(readOnboarding());
       })
-      .catch(() => {})
-      .finally(() => { syncing.current = false; });
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [user, state, language, updateUser]);
 
   // Connexion depuis un autre onglet : le parcours n'a plus lieu d'être

@@ -1,5 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { syncOnboarding } from "../lib/onboarding";
+
+/* Réponses du parcours de bienvenue rattachées au compte avant d'ouvrir le profil.
+   Un échec n'empêche jamais la connexion : le parcours réessaiera plus tard. */
+async function withOnboarding(user) {
+  if (!user || user.role === "admin") return user;
+  try {
+    const saved = await syncOnboarding();
+    return saved ? { ...user, ...saved } : user;
+  } catch {
+    return user;
+  }
+}
 
 const AuthCtx = createContext(null);
 export const useAuth = () => useContext(AuthCtx);
@@ -57,7 +70,7 @@ export default function AuthProvider({ children }) {
       localStorage.setItem("token", data.token);
     }
 
-    const u = data?.user || { email };
+    const u = await withOnboarding(data?.user || { email });
     localStorage.setItem("user", JSON.stringify(u));
     setUser(u);
 
@@ -69,9 +82,10 @@ export default function AuthProvider({ children }) {
     localStorage.setItem("token", token);
     try {
       const data = await api("/auth/me");
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
-      return data.user;
+      const u = await withOnboarding(data.user);
+      localStorage.setItem("user", JSON.stringify(u));
+      setUser(u);
+      return u;
     } catch (err) {
       localStorage.removeItem("token");
       throw err;
