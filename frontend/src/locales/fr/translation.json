@@ -20,7 +20,16 @@
     "createProject": "Créer un projet",
     "scrollCue": "En savoir plus sur Hive",
     "mapEyebrow": "En direct",
-    "mapTitle": "Explore les projets sur la carte"
+    "mapTitle": "Explore les projets sur la carte",
+    "welcome": {
+      "hello": "Bonjour",
+      "helloAnonymous": "Bon retour sur Hive.",
+      "leadPlace": "Voici les projets ouverts autour de {{place}}. Rejoins-en un ou lance le tien.",
+      "lead": "Voici les projets ouverts en ce moment. Rejoins-en un ou lance le tien.",
+      "finishTitle": "Profil prêt à 90 %",
+      "finishNote": "Crée ton compte pour garder tes choix et écrire aux porteurs de projet.",
+      "finishCta": "Créer mon compte"
+    }
   },
   "howItWorks": {
     "title": "Trois étapes pour donner vie à ton projet",
@@ -84,7 +93,9 @@
     "resendBtn": "Renvoyer le code",
     "resendError": "Impossible de renvoyer le code.",
     "alreadyRegistered": "Déjà inscrit ?",
-    "signIn": "Se connecter"
+    "signIn": "Se connecter",
+    "lastStepNamed": "Plus qu'une étape, {{name}} : ton profil est prêt à 90 %.",
+    "lastStep": "Plus qu'une étape : ton profil est prêt à 90 %."
   },
   "reset": {
     "title": "Nouveau mot de passe",
@@ -726,7 +737,7 @@
   "onboarding": {
     "later": "Plus tard",
     "stepOf": "Étape {{current}} sur {{total}}",
-    "progress": "{{value}} % complété",
+    "progress": "{{value}} % complété",
     "progressLabel": "Progression de ton profil",
     "steps": {
       "name": "Prénom",
@@ -743,7 +754,9 @@
       "title": "Qu'est-ce qui t'intéresse ?",
       "lead": "Choisis 3 sujets. On s'en sert pour te proposer des projets qui te correspondent.",
       "counter": "{{count}} sur {{max}} sélectionnés",
-      "titleNamed": "Qu'est-ce qui t'intéresse, {{name}} ?"
+      "titleNamed": "Qu'est-ce qui t'intéresse, {{name}} ?",
+      "remaining_one": "Encore 1 à choisir",
+      "remaining_other": "Encore {{count}} à choisir"
     },
     "location": {
       "title": "Où es-tu basé·e ?",
@@ -795,7 +808,9 @@
       "noProjects": "Pas encore de projet ici : le tien pourrait être le premier",
       "readiness": "Profil prêt",
       "readinessNote": "Crée ton compte pour garder tes choix et rejoindre des projets.",
-      "editAnswers": "Modifier mes réponses"
-    }
+      "editAnswers": "Modifier",
+      "editInterests": "Modifier mes centres d'intérêt"
+    },
+    "previous": "Étape précédente"
   }
 }

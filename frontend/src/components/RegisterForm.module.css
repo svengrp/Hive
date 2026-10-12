@@ -30,6 +30,37 @@
   color: var(--text-main);
 }
 
+/* Suite du parcours de bienvenue : le profil est à 90 %, le compte fait le reste */
+.titleTight {
+  margin-bottom: 10px;
+}
+
+.lastStep {
+  margin: 0 0 28px;
+}
+
+.lastStepText {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.lastStepBar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--bg-card-soft);
+  overflow: hidden;
+}
+
+.lastStepBar span {
+  display: block;
+  width: 90%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
 /* FORM */
 .form {
   display: flex;

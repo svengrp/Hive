@@ -13,7 +13,15 @@ export const MAX_NAME_LENGTH = 40;
 
 export const GOALS = ["join", "launch", "both"];
 
-const EMPTY = { status: "pending", step: "name", firstName: "", interests: [], country: "", city: "", goal: null, synced: false };
+const EMPTY = {
+  status: "pending", step: "name", firstName: "", interests: [], country: "", city: "", goal: null, view: null, synced: false,
+};
+
+// Vue de carte [lat, lng, zoom] trouvée à l'écran final, reprise par la carte de l'accueil
+const isView = (value) => Array.isArray(value) && value.length === 3 && value.every(Number.isFinite);
+
+// Prévient l'accueil quand les réponses changent (même onglet)
+export const ONBOARDING_EVENT = "hive:onboarding";
 
 export function readOnboarding() {
   try {
@@ -26,6 +34,7 @@ export function readOnboarding() {
       firstName: typeof saved.firstName === "string" ? saved.firstName.slice(0, MAX_NAME_LENGTH) : "",
       interests: cleanInterests(saved.interests),
       goal: GOALS.includes(saved.goal) ? saved.goal : null,
+      view: isView(saved.view) ? saved.view : null,
     };
   } catch {
     return { ...EMPTY };
@@ -38,6 +47,13 @@ export function writeOnboarding(state) {
   } catch {
     // Navigation privée ou stockage bloqué : le parcours reste utilisable, sans mémoire.
   }
+  window.dispatchEvent(new Event(ONBOARDING_EVENT));
+}
+
+/* Visiteur déjà passé par le parcours (terminé ou mis de côté) et qui a répondu à
+   quelque chose : l'accueil lui parle directement au lieu de lui présenter Hive. */
+export function isKnownVisitor(state) {
+  return state.status !== "pending" && hasAnswers(state);
 }
 
 /* Des réponses à envoyer au serveur une fois connecté ? */

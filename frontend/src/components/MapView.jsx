@@ -259,7 +259,8 @@ function ProjectMarkers({ projects, onProjectClick }) {
 
 /* Vue principale de la carte : charge tous les projets, géolocalise l'utilisateur,
    et affiche un panneau latéral glissant au clic sur un marker. */
-function MapView() {
+/* initialView : [lat, lng, zoom] où ouvrir la carte (ville choisie au parcours de bienvenue). */
+function MapView({ initialView = null }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [userLocation, setUserLocation] = useState(null);
@@ -552,8 +553,8 @@ function MapView() {
         )}
 
         <MapContainer
-          center={DEFAULT_CENTER}
-          zoom={7}
+          center={initialView ? initialView.slice(0, 2) : DEFAULT_CENTER}
+          zoom={initialView ? Math.min(initialView[2], 10) : 7}
           zoomControl={false}
           scrollWheelZoom={false}
           className={classes.mapCanvas}

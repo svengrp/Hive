@@ -6,6 +6,7 @@ import classes from "./RegisterForm.module.css";
 import { useTranslation } from "react-i18next";
 import PasswordStrengthMeter, { computeEntropy } from "./PasswordValidator";
 import FloatingField from "./FloatingField";
+import { isKnownVisitor, readOnboarding } from "../lib/onboarding";
 import SocialLogin from "./SocialLogin";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -30,6 +31,10 @@ export default function RegisterForm() {
   const { t } = useTranslation();
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  // Arrivée depuis le parcours de bienvenue : on reprend le fil (« Plus qu'une étape, Léa »)
+  const [onboarding] = useState(readOnboarding);
+  const fromOnboarding = isKnownVisitor(onboarding) && !onboarding.synced;
+  const onboardingName = onboarding.firstName.trim();
 
   const handleCodeChange = (value, index) => {
     if (!/^\d?$/.test(value)) return;
@@ -131,9 +136,27 @@ export default function RegisterForm() {
   return (
     <div className={classes.registerWrapper}>
       <div className={classes.registerCard}>
-        <h1 className={classes.title}>
+        <h1 className={`${classes.title} ${step === "register" && fromOnboarding ? classes.titleTight : ""}`}>
           {step === "register" ? t("register.titleRegister") : t("register.titleVerify")}
         </h1>
+
+        {step === "register" && fromOnboarding && (
+          <div className={classes.lastStep}>
+            <p className={classes.lastStepText}>
+              {onboardingName ? t("register.lastStepNamed", { name: onboardingName }) : t("register.lastStep")}
+            </p>
+            <div
+              className={classes.lastStepBar}
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={90}
+              aria-label={t("onboarding.progressLabel")}
+            >
+              <span />
+            </div>
+          </div>
+        )}
 
         {step === "register" && <SocialLogin />}
 

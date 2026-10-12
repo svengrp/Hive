@@ -1,8 +1,9 @@
 // Parcours de bienvenue : « Bonjour, <prénom> », étapes, écran final, envoi des réponses une fois connecté
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import Onboarding from "../components/Onboarding";
 import { api } from "../lib/api";
+import { locatePlace } from "../lib/onboarding";
 
 let mockUser = null;
 const mockUpdateUser = jest.fn();
@@ -50,6 +51,7 @@ beforeEach(() => {
   mockUser = null;
   mockUpdateUser.mockReset();
   api.mockReset();
+  locatePlace.mockResolvedValue([46.52, 6.63, 11]);
 });
 
 const typeName = (value) => fireEvent.change(screen.getByPlaceholderText("Ton prénom"), { target: { value } });
@@ -82,9 +84,9 @@ test("ne s'ouvre pas sur un lien direct, ni pour un compte connecté, ni une foi
   unmount();
 
   mockUser = { _id: "u1", role: "user" };
-  const second = renderAt("/");
+  const view = renderAt("/");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  second.unmount();
+  view.unmount();
 
   mockUser = null;
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ status: "skipped" }));
@@ -92,18 +94,17 @@ test("ne s'ouvre pas sur un lien direct, ni pour un compte connecté, ni une foi
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
-test("3 centres d'intérêt au maximum, Continuer actif seulement à 3", () => {
+test("3 centres d'intérêt au maximum, le bouton dit combien il en reste", () => {
   renderAt("/");
   click("Passer");
-  const continuer = screen.getByRole("button", { name: "Continuer" });
-  expect(continuer).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Encore 3 à choisir" })).toBeDisabled();
 
   click(/Musique/);
   click(/Design/);
-  expect(continuer).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Encore 1 à choisir" })).toBeDisabled();
   click(/Photo/);
 
-  expect(continuer).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Continuer" })).toBeEnabled();
   expect(screen.getByRole("button", { name: /Sport/ })).toBeDisabled();
   expect(screen.getByText("3 sur 3 sélectionnés")).toBeInTheDocument();
 });
@@ -143,6 +144,8 @@ test("parcours complet : écran final sur la carte puis création de compte", as
   expect(await screen.findByText(/4 projets ouverts dans ta zone/)).toBeInTheDocument();
   expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "90");
   expect(api).toHaveBeenCalledWith("/projects?status=open");
+  // La vue trouvée est gardée pour ouvrir la carte de l'accueil au même endroit
+  await waitFor(() => expect(saved().view).toEqual([46.52, 6.63, 11]));
 
   click("Créer mon compte");
   expect(screen.getByText("Page inscription")).toBeInTheDocument();
@@ -159,6 +162,10 @@ test("une étape peut être passée sans répondre", () => {
   expect(screen.getByText("Où es-tu basé·e ?")).toBeInTheDocument();
   click("Retour");
   expect(screen.getByText("Qu'est-ce qui t'intéresse ?")).toBeInTheDocument();
+  // Retour en haut à gauche (mobile)
+  click("Étape précédente");
+  expect(screen.getByRole("heading", { name: "Bonjour" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Étape précédente" })).not.toBeInTheDocument();
 });
 
 test("une fois connecté, les réponses sont envoyées une seule fois au compte", async () => {
@@ -168,7 +175,7 @@ test("une fois connecté, les réponses sont envoyées une seule fois au compte"
   mockUser = { _id: "u1", role: "user", email: "lea@example.com" };
   api.mockResolvedValue({ _id: "u1", interests: ["music"] });
 
-  await act(async () => { renderAt("/profile"); });
+  renderAt("/profile");
 
   await waitFor(() => expect(saved().synced).toBe(true));
   expect(api).toHaveBeenCalledTimes(1);

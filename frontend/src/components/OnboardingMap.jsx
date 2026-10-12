@@ -8,6 +8,8 @@ import { START_VIEW } from "../lib/onboarding";
 import BaseMapLayers from "./BaseMapLayers";
 
 const MAX_PINS = 60;
+const CITY_ZOOM = 11;
+const NEARBY_RADIUS_M = 25000;
 
 const prefersReducedMotion = () => Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
 
@@ -33,12 +35,24 @@ function projectPosition(project) {
   return [coords[1], coords[0]];
 }
 
-/* Centre décalé pour que le lieu ne tombe pas sous le texte : à droite du panneau
-   sur grand écran, au-dessus sur mobile. */
+/* Sur grand écran, le texte est posé à gauche de la carte : on décale le centre pour
+   que le lieu tombe à droite du panneau. Sur mobile, la carte est seule en haut. */
 function offsetCenter(map, latLng, zoom) {
   const size = map.getSize();
-  const shift = size.x > 900 ? L.point(-size.x * 0.2, 0) : L.point(0, size.y * 0.24);
-  return map.unproject(map.project(latLng, zoom).add(shift), zoom);
+  if (size.x <= 900) return latLng;
+  return map.unproject(map.project(latLng, zoom).add(L.point(-size.x * 0.2, 0)), zoom);
+}
+
+/* Le panneau du dessous peut changer de hauteur (texte qui arrive) : la carte suit. */
+function FitContainer() {
+  const map = useMap();
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(() => map.invalidateSize({ pan: false }));
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [map]);
+  return null;
 }
 
 /* Vol de la vue d'ensemble jusqu'au lieu choisi, puis signal d'arrivée. */
@@ -78,15 +92,20 @@ export default function OnboardingMap({ target, projects, onCount }) {
   const { theme } = useTheme();
   const [arrived, setArrived] = useState(false);
 
+  // Autour d'une ville : rayon fixe, le même chiffre quelle que soit la taille de l'écran.
+  // Pays seul : ce qui est à l'écran.
   const handleArrived = useCallback((map) => {
     const bounds = map.getBounds();
-    const visible = projects.filter((project) => {
+    const here = L.latLng(target[0], target[1]);
+    const isCity = target[2] >= CITY_ZOOM;
+    const nearby = projects.filter((project) => {
       const position = projectPosition(project);
-      return position && bounds.contains(position);
+      if (!position) return false;
+      return isCity ? here.distanceTo(position) <= NEARBY_RADIUS_M : bounds.contains(position);
     });
-    onCount(visible.length);
+    onCount(nearby.length);
     setArrived(true);
-  }, [projects, onCount]);
+  }, [projects, onCount, target]);
 
   const pins = useMemo(() => {
     if (!arrived || !target) return [];
@@ -114,6 +133,7 @@ export default function OnboardingMap({ target, projects, onCount }) {
       style={{ height: "100%", width: "100%" }}
     >
       <BaseMapLayers theme={theme} />
+      <FitContainer />
       <CameraFlight target={target} onArrived={handleArrived} />
       {arrived && target && <Marker position={[target[0], target[1]]} icon={hereIcon} interactive={false} keyboard={false} />}
       {pins.map(({ project, position }, index) => (

@@ -20,7 +20,16 @@
     "createProject": "Create a project",
     "scrollCue": "Learn more about Hive",
     "mapEyebrow": "Live",
-    "mapTitle": "Explore projects on the map"
+    "mapTitle": "Explore projects on the map",
+    "welcome": {
+      "hello": "Hello",
+      "helloAnonymous": "Welcome back to Hive.",
+      "leadPlace": "Here are the open projects around {{place}}. Join one or start your own.",
+      "lead": "Here are the projects open right now. Join one or start your own.",
+      "finishTitle": "Profile 90% ready",
+      "finishNote": "Create your account to keep your choices and message project owners.",
+      "finishCta": "Create my account"
+    }
   },
   "howItWorks": {
     "title": "Three steps to bring your project to life",
@@ -84,7 +93,9 @@
     "resendBtn": "Resend code",
     "resendError": "Unable to resend the code.",
     "alreadyRegistered": "Already registered?",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "lastStepNamed": "One last step, {{name}}: your profile is 90% ready.",
+    "lastStep": "One last step: your profile is 90% ready."
   },
   "reset": {
     "title": "New password",
@@ -743,7 +754,9 @@
       "title": "What are you into?",
       "lead": "Pick 3 topics. We use them to suggest projects that fit you.",
       "counter": "{{count}} of {{max}} selected",
-      "titleNamed": "What are you into, {{name}}?"
+      "titleNamed": "What are you into, {{name}}?",
+      "remaining_one": "Pick 1 more",
+      "remaining_other": "Pick {{count}} more"
     },
     "location": {
       "title": "Where are you based?",
@@ -795,7 +808,9 @@
       "noProjects": "No projects here yet: yours could be the first",
       "readiness": "Profile ready",
       "readinessNote": "Create your account to keep your choices and join projects.",
-      "editAnswers": "Edit my answers"
-    }
+      "editAnswers": "Edit",
+      "editInterests": "Edit my interests"
+    },
+    "previous": "Previous step"
   }
 }
