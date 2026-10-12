@@ -1,0 +1,46 @@
+# Sauvegarde nocturne de la base Hive (MongoDB Atlas, offre gratuite sans sauvegarde).
+# Le dépôt est public : la sauvegarde est chiffrée (AES-256) AVANT d'être stockée.
+# Secrets à créer dans GitHub (Settings → Secrets and variables → Actions) :
+#   MONGO_BACKUP_URI   URI d'un utilisateur Atlas en lecture seule (rôle « readAnyDatabase »)
+#   BACKUP_PASSPHRASE  phrase de chiffrement longue, gardée aussi hors de GitHub
+# Restauration : backend/scripts/restore-db.sh (voir l'en-tête du script).
+name: Sauvegarde de la base
+
+on:
+  schedule:
+    - cron: "17 2 * * *" # chaque nuit vers 3 h 17 / 4 h 17 en Suisse
+  workflow_dispatch: # bouton « Run workflow » pour lancer une sauvegarde à la main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-db
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer les outils MongoDB
+        run: |
+          curl -fsSL -o tools.deb https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x86_64-100.13.0.deb
+          sudo apt-get install -y ./tools.deb
+          mongodump --version
+
+      - name: Sauvegarder et chiffrer
+        env:
+          MONGO_URI: ${{ secrets.MONGO_BACKUP_URI }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: backend/scripts/backup-db.sh backups
+
+      - name: Conserver 30 jours
+        uses: actions/upload-artifact@v4
+        with:
+          name: hive-db-${{ github.run_id }}
+          path: backups/*.gpg
+          retention-days: 30
+          if-no-files-found: error
