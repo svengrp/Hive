@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import { useAuth } from "./context/AuthContext";
 import Home from "./pages/Home";
@@ -24,6 +24,13 @@ import { useTranslation } from "react-i18next";
 import { useSeo } from "./lib/seo";
 
 import "./App.css";
+
+/* Lien de partage /p/:id. En production, Render le sert au serveur (page d'aperçu
+   pour WhatsApp, Instagram…) ; s'il arrive jusqu'ici, on ouvre simplement le projet. */
+function ShareRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/projects/${id}`} replace />;
+}
 
 /* 404 : jamais indexée */
 function NotFound() {
@@ -56,6 +63,7 @@ export default function App() {
           <Route path="/create-project" element={user ? <CreateProject /> : <Navigate to="/login" replace />} />
           <Route path="/projects/:id/edit" element={user ? <CreateProject /> : <Navigate to="/login" replace />} />
           <Route path="/projects/:id" element={<ProjectDetails />} />
+          <Route path="/p/:id" element={<ShareRedirect />} />
           <Route path="/users/:id" element={<UserProfile />} />
           <Route path="/forgotpassword" element={user ? <Navigate to="/profile" replace /> : <ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

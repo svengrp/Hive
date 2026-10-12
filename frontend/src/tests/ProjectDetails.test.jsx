@@ -156,3 +156,42 @@ test("TF-12 — affiche le statut 'en attente' si une demande est déjà envoyé
   );
   expect(screen.queryByRole("button", { name: /envoyer une demande/i })).not.toBeInTheDocument();
 });
+
+describe("partage d'un projet", () => {
+  const renderProject = () => render(
+    <MemoryRouter initialEntries={["/projects/project-1"]}>
+      <Routes>
+        <Route path="/projects/:id" element={<ProjectDetails />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  afterEach(() => {
+    delete navigator.share;
+    delete navigator.clipboard;
+  });
+
+  test("sur mobile : feuille de partage native avec le lien court /p/:id", async () => {
+    const share = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "share", { value: share, configurable: true });
+    renderProject();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Partager" }));
+
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({
+      title: "Projet test",
+      url: `${window.location.origin}/p/project-1`,
+    }));
+  });
+
+  test("sans partage natif : le lien est copié et le bouton le confirme", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    renderProject();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Partager" }));
+
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/p/project-1`);
+    expect(await screen.findByRole("button", { name: "Lien copié" })).toBeInTheDocument();
+  });
+});

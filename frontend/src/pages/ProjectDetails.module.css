@@ -8,6 +8,9 @@
 .topBar {
   position: relative;
   z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { MapContainer, Marker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ArrowLeft, Check, Clock, DollarSign, GitBranch, MapPin, Pencil, Star, UserPlus, UserRound, X } from "lucide-react";
+import { ArrowLeft, Check, Clock, DollarSign, GitBranch, MapPin, Pencil, Share2, Star, UserPlus, UserRound, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useSeo } from "../lib/seo";
@@ -62,6 +62,7 @@ export default function ProjectDetails() {
   const [joinMessage, setJoinMessage]   = useState("");
   const [joinLoading, setJoinLoading]   = useState(false);
   const [toast, setToast]               = useState(null);
+  const [linkCopied, setLinkCopied]     = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [closeLoading, setCloseLoading]         = useState(false);
   const [showRatingModal, setShowRatingModal]   = useState(false);
@@ -280,6 +281,27 @@ export default function ProjectDetails() {
     : owner?.displayName || [owner?.firstName, owner?.lastName].filter(Boolean).join(" ") || t("projectDetails.unknownCreator");
   const ownerLocation = [owner?.address?.city, owner?.address?.country].filter(Boolean).join(", ");
 
+  // Partage : lien court /p/:id. Hébergé, il renvoie aux robots (WhatsApp, Instagram…)
+  // une page d'aperçu avec le titre et la couverture du projet, puis redirige vers le projet.
+  const shareProject = async () => {
+    const url = `${window.location.origin}/p/${project._id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: project.title, text: t("projectDetails.shareText", { title: project.title }), url });
+      } catch {
+        // Partage annulé par la personne : rien à faire
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2500);
+    } catch {
+      window.prompt(t("projectDetails.shareCopyPrompt"), url);
+    }
+  };
+
   // ── JSX ──────────────────────────────────────────────────────────────────────
   return (
     <div className={classes.page}>
@@ -293,6 +315,10 @@ export default function ProjectDetails() {
           <button className={classes.backBtn} onClick={() => navigate("/projects")}>
             <ArrowLeft size={16} />
             {t("projectDetails.backToProjects")}
+          </button>
+          <button type="button" className={classes.backBtn} onClick={shareProject} aria-live="polite">
+            {linkCopied ? <Check size={16} aria-hidden="true" /> : <Share2 size={16} aria-hidden="true" />}
+            {linkCopied ? t("projectDetails.linkCopied") : t("projectDetails.share")}
           </button>
         </div>
 

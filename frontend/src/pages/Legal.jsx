@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useSeo } from "../lib/seo";
 import classes from "./Legal.module.css";
 
-const LAST_UPDATE = "6 octobre 2026";
+const LAST_UPDATE = "12 octobre 2026";
 const CONTACT = "contact@hive-app.ch";
 const OPERATOR = "Sven Greppin";
 const ADDRESS = "Chemin Doctoresse-Champendal 10, 1206 Genève, Suisse";
@@ -63,8 +63,24 @@ export function PrivacyPolicy() {
         <li>Prénom, nom, nom d'affichage, photo, biographie, âge, langues, formation, compétences, téléphone, adresse.</li>
         <li>
           <strong>Ce qui est public :</strong> nom d'affichage, prénom et nom, photo, biographie, âge, langues, formation,
-          compétences, <strong>ville et pays uniquement</strong>, réputation et date d'inscription.
+          compétences, centres d'intérêt, <strong>ville et pays uniquement</strong>, réputation et date d'inscription.
           Ta rue, ton code postal, ton email et ton téléphone ne sont jamais affichés publiquement.
+        </li>
+      </ul>
+      <h3>Parcours de bienvenue</h3>
+      <ul>
+        <li>
+          À ta première visite, tu peux indiquer ton prénom, trois centres d'intérêt, ton pays, ta ville et ce que tu
+          cherches sur Hive. Chaque question est facultative et peut être passée.
+        </li>
+        <li>
+          <strong>Sans compte, ces réponses restent dans ton navigateur</strong> : elles ne sont pas enregistrées sur nos
+          serveurs. Tes centres d'intérêt accompagnent seulement la demande de la liste des projets, pour marquer ceux
+          qui te correspondent (« Pour toi »), sans y être conservés.
+        </li>
+        <li>
+          Si tu crées un compte ou te connectes, elles sont enregistrées sur ton compte, sans remplacer ce que tu y avais
+          déjà indiqué. Tu peux les modifier ou les retirer à tout moment dans ton profil.
         </li>
       </ul>
       <h3>Projets et activité</h3>
@@ -100,13 +116,17 @@ export function PrivacyPolicy() {
         Pour retrouver une adresse, le texte que tu tapes est envoyé au service de recherche d'adresses
         Nominatim (OpenStreetMap).
       </p>
+      <p>
+        <strong>Au parcours de bienvenue :</strong> la ville et le pays que tu indiques sont envoyés à Nominatim
+        pour centrer la carte de l'écran final. Rien d'autre n'est transmis.
+      </p>
 
       <h2>4. Pourquoi nous utilisons tes données (finalités et bases légales)</h2>
       <ul>
         <li><strong>Faire fonctionner Hive</strong> (compte, projets, candidatures, messagerie, carte) : exécution du contrat que tu acceptes en t'inscrivant (RGPD art. 6 al. 1 let. b).</li>
         <li><strong>Encaisser les paiements et tenir la comptabilité</strong> : exécution du contrat et obligation légale (RGPD art. 6 al. 1 let. b et c ; CO art. 958f).</li>
         <li><strong>Sécurité</strong> (prévention des abus, blocage après trop de tentatives de connexion, modération) : intérêt légitime (RGPD art. 6 al. 1 let. f).</li>
-        <li><strong>Recommandations de projets</strong> selon les projets consultés : intérêt légitime à te proposer des projets pertinents. Aucune décision automatisée produisant des effets juridiques n'est prise.</li>
+        <li><strong>Recommandations de projets</strong> selon tes centres d'intérêt et les projets consultés : intérêt légitime à te proposer des projets pertinents. Aucune décision automatisée produisant des effets juridiques n'est prise.</li>
         <li><strong>Emails</strong> : codes de vérification, réinitialisation du mot de passe, et notifications de nouveaux messages (désactivables dans ton profil).</li>
       </ul>
       <p>Nous ne vendons pas tes données et n'utilisons aucun cookie publicitaire ni outil de suivi publicitaire.</p>
@@ -117,12 +137,12 @@ export function PrivacyPolicy() {
         <table>
           <thead><tr><th>Prestataire</th><th>Rôle</th><th>Pays</th></tr></thead>
           <tbody>
-            <tr><td>Render Services, Inc.</td><td>Hébergement du site et de l'API</td><td>États-Unis / UE selon la région du serveur</td></tr>
-            <tr><td>MongoDB, Inc. (Atlas)</td><td>Base de données</td><td>États-Unis / UE selon la région du serveur</td></tr>
+            <tr><td>Render Services, Inc.</td><td>Hébergement de l'API (serveur) et du site</td><td>Allemagne (Francfort) pour l'API ; fichiers du site servis depuis le réseau mondial de Render</td></tr>
+            <tr><td>MongoDB, Inc. (Atlas)</td><td>Base de données</td><td>Allemagne (Francfort)</td></tr>
             <tr><td>Stripe Payments Europe, Ltd.</td><td>Paiements</td><td>Irlande, États-Unis</td></tr>
             <tr><td>Zoho Corporation (zoho.eu)</td><td>Envoi des emails</td><td>Union européenne</td></tr>
             <tr><td>Google LLC, GitHub, Inc.</td><td>Connexion via ces comptes (si tu la choisis)</td><td>États-Unis</td></tr>
-            <tr><td>OpenStreetMap Foundation (Nominatim)</td><td>Recherche d'adresses à la création d'un projet</td><td>Royaume-Uni, UE</td></tr>
+            <tr><td>OpenStreetMap Foundation (Nominatim)</td><td>Recherche d'adresses (création d'un projet, parcours de bienvenue)</td><td>Royaume-Uni, UE</td></tr>
             <tr><td>OpenFreeMap, Esri, Inc.</td><td>Affichage des fonds de carte (reçoivent ton adresse IP)</td><td>UE, États-Unis</td></tr>
           </tbody>
         </table>
@@ -146,9 +166,11 @@ export function PrivacyPolicy() {
       <h2>7. Stockage dans ton navigateur (cookies)</h2>
       <p>
         Hive n'utilise <strong>aucun cookie de suivi ni de publicité</strong>. Ton navigateur conserve uniquement
-        ce qui est strictement nécessaire au fonctionnement du site : ton jeton de connexion, les informations de
-        ton compte pour l'affichage, ton thème (clair ou sombre) et ton dernier email de connexion.
-        Ces éléments ne servent à rien d'autre et disparaissent quand tu te déconnectes ou vides les données du site.
+        ce qui sert au fonctionnement du site : ton jeton de connexion et les informations de ton compte pour
+        l'affichage, ton thème (clair ou sombre), ta langue, ton dernier email de connexion, tes réponses au
+        parcours de bienvenue et le brouillon d'un projet en cours de création.
+        Ces éléments ne servent à rien d'autre. Le jeton et les informations de compte disparaissent quand tu te
+        déconnectes ; le reste, quand tu vides les données du site dans ton navigateur.
         Lors d'un paiement, Stripe peut déposer ses propres cookies, nécessaires à la sécurité du paiement.
       </p>
 

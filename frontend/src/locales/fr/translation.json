@@ -344,7 +344,11 @@
     "cancel": "Annuler",
     "joinKicked": "Tu as été retiré de ce projet",
     "editProject": "Modifier le projet",
-    "closeProject": "Clôturer le projet"
+    "closeProject": "Clôturer le projet",
+    "share": "Partager",
+    "linkCopied": "Lien copié",
+    "shareText": "{{title}} cherche du monde sur Hive",
+    "shareCopyPrompt": "Copie ce lien pour partager le projet :"
   },
   "messages": {
     "title": "Messagerie",

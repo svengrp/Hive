@@ -121,8 +121,9 @@ export function shouldShowOnboarding({ user, pathname, state }) {
 
 /* ---------- Pays ---------- */
 
-// Proposés en premier : Hive se lance en Suisse, puis les pays voisins.
-const PRIORITY_COUNTRIES = ["CH", "FR", "DE", "IT", "AT", "LI", "BE", "LU"];
+// Hive vise la Suisse : elle seule est mise en avant, les autres pays restent au choix.
+// (Mettre en avant des pays de l'UE serait un signe de ciblage au sens du RGPD.)
+const PRIORITY_COUNTRIES = ["CH"];
 // Codes de région qui ne sont pas des pays.
 const NOT_COUNTRIES = new Set(["EU", "EZ", "UN", "QO", "XA", "XB", "ZZ", "AC", "CP", "DG", "EA", "IC", "TA", "CQ"]);
 
@@ -152,15 +153,8 @@ export function getCountries(language) {
   return { priority, others };
 }
 
-/* Pays deviné depuis la langue du navigateur (fr-CH → CH), Suisse par défaut. */
-export function guessCountryCode() {
-  const languages = navigator.languages?.length ? navigator.languages : [navigator.language || ""];
-  for (const tag of languages) {
-    const region = tag.split("-")[1];
-    if (region && /^[A-Za-z]{2}$/.test(region)) return region.toUpperCase();
-  }
-  return "CH";
-}
+// Pays proposé d'office à l'étape Localisation
+export const DEFAULT_COUNTRY = "CH";
 
 /* ---------- Écran final : où centrer la carte ---------- */
 

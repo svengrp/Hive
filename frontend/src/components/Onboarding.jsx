@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import { MAX_INTERESTS } from "../lib/interests";
 import {
-  GOALS, MAX_NAME_LENGTH, STEPS, STEP_PROGRESS, countryName, getCountries, guessCountryCode, hasAnswers,
+  GOALS, MAX_NAME_LENGTH, STEPS, STEP_PROGRESS, DEFAULT_COUNTRY, countryName, getCountries, hasAnswers,
   locatePlace, readOnboarding, shouldShowOnboarding, syncOnboarding, writeOnboarding,
 } from "../lib/onboarding";
 import logoHive from "../img/logoHive.svg";
@@ -122,7 +122,7 @@ export default function Onboarding() {
   // Pays proposé d'office à l'étape Localisation
   useEffect(() => {
     if (open && state.step === "location" && !state.country) {
-      setState((current) => ({ ...current, country: guessCountryCode() }));
+      setState((current) => ({ ...current, country: DEFAULT_COUNTRY }));
     }
   }, [open, state.step, state.country]);
 
