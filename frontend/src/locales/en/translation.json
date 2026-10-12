@@ -116,7 +116,8 @@
     "you": "You",
     "upTo": "Up to {{max}} years",
     "allAges": "All ages",
-    "full": "Full"
+    "full": "Full",
+    "forYou": "For you · {{topics}}"
   },
   "publicProfile": {
     "loading": "Loading profile…",
@@ -203,7 +204,15 @@
     "searchThemes": "Search a theme…",
     "noTheme": "No matching theme",
     "recommended": "Recommended for you",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "allTab": "All projects",
+    "forYouTab": "For you",
+    "forYouHint": "Based on your interests: {{topics}}",
+    "editInterests": "Edit",
+    "forYouEmpty": "No project matches your interests yet.",
+    "showAll": "See all projects",
+    "pickInterests": "Pick your interests to see projects made for you",
+    "viewLabel": "View"
   },
   "map": {
     "closeHint": "Close map hint",

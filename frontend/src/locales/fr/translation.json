@@ -116,7 +116,8 @@
     "you": "Vous",
     "upTo": "Jusqu'à {{max}} ans",
     "allAges": "Tout âge",
-    "full": "Complet"
+    "full": "Complet",
+    "forYou": "Pour toi · {{topics}}"
   },
   "publicProfile": {
     "loading": "Chargement du profil…",
@@ -203,7 +204,15 @@
     "searchThemes": "Chercher un thème…",
     "noTheme": "Aucun thème ne correspond",
     "recommended": "Recommandés pour toi",
-    "clearSearch": "Effacer la recherche"
+    "clearSearch": "Effacer la recherche",
+    "allTab": "Tous les projets",
+    "forYouTab": "Pour toi",
+    "forYouHint": "Selon tes centres d'intérêt : {{topics}}",
+    "editInterests": "Modifier",
+    "forYouEmpty": "Aucun projet ne correspond encore à tes centres d'intérêt.",
+    "showAll": "Voir tous les projets",
+    "pickInterests": "Choisis tes centres d'intérêt pour voir les projets faits pour toi",
+    "viewLabel": "Affichage"
   },
   "map": {
     "closeHint": "Fermer l'aide de la carte",

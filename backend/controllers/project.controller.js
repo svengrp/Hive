@@ -9,6 +9,16 @@ const ProjectRequest = require('../models/ProjectRequest');
 const Rating         = require('../models/Rating');
 const ProjectCover   = require('../models/ProjectCover');
 const { projectsCreatedTotal, projectsClosedTotal } = require('../metric');
+const { matchInterests, interestsQuery, parseInterestList } = require('../utils/interestMatching');
+
+/* Ajoute à chaque projet les centres d'intérêt auxquels il correspond (badge « Pour toi »). */
+function withMatches(projects, interests) {
+  if (!interests.length) return projects;
+  return projects.map((project) => {
+    const plain = typeof project.toObject === 'function' ? project.toObject() : project;
+    return { ...plain, matchedInterests: matchInterests(plain, interests) };
+  });
+}
 
 // ==============================
 // VALIDATION DES DONNÉES PROJET
@@ -121,6 +131,8 @@ function cosinSimilarity(vecA, vecB){
 // GET /projects — liste des projets avec filtres optionnels (search, q, tags, region, status)
 // Sans `limit` : renvoie le tableau complet (utilisé par la carte).
 // Avec `limit` : renvoie une page { items, total, page, hasMore } (page Projets).
+// `interests=music,design` : chaque projet indique ceux auxquels il correspond
+// (matchedInterests) ; avec `forYou=1`, seuls ces projets sont renvoyés.
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const MAX_PAGE_SIZE = 48;
 
@@ -133,11 +145,14 @@ exports.getAllProjects = async (req, res) => {
   const region = str(req.query.region);
   const status = str(req.query.status);
   const userId = req.user?.id;
+  const interests = parseInterestList(req.query.interests);
+  const forYou = req.query.forYou === '1';
   const conditions = [];
 
   if (search) conditions.push({ $text: { $search: search } });
   if (tags) conditions.push({ tags: { $in: tags.split(',').filter(Boolean) } });
   if (region) conditions.push({ 'projectMeta.region': region });
+  if (forYou && interests.length) conditions.push(interestsQuery(interests));
 
   // Recherche partielle (titre, description, thèmes), comme la saisie en direct du front
   const term = q.trim().slice(0, 100);
@@ -161,7 +176,7 @@ exports.getAllProjects = async (req, res) => {
     .sort({ createdAt: -1, _id: -1 });
 
   if (req.query.limit === undefined) {
-    return res.json(await find());
+    return res.json(withMatches(await find(), interests));
   }
 
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 12, 1), MAX_PAGE_SIZE);
@@ -172,7 +187,7 @@ exports.getAllProjects = async (req, res) => {
     Project.countDocuments(query),
   ]);
 
-  res.json({ items, total, page, hasMore: page * limit < total });
+  res.json({ items: withMatches(items, interests), total, page, hasMore: page * limit < total });
 };
 
 // GET /projects/:id — détail d'un projet avec owner et participants populés
@@ -625,50 +640,66 @@ exports.getStats = async (req, res) => {
     }
 };
 
-// GET /projects/recommended — retourne jusqu'à 10 projets recommandés par similarité cosinus
+// GET /projects/recommended — jusqu'à 10 projets ouverts recommandés :
+// - centres d'intérêt de la personne (choisis à l'arrivée ou sur le profil), dès le premier jour ;
+// - puis, avec au moins 3 projets consultés, similarité cosinus des thèmes avec ces projets.
+// Score final = similarité (0 à 1) + 0,5 × part des centres d'intérêt couverts.
+const RECOMMENDED_POPULATE = ['ownerId', 'displayName firstName lastName avatarUrl plan'];
+const INTEREST_WEIGHT = 0.5;
+
 exports.getRecommended = async(req, res) => {
     try {
-        //  on ne retient que les 10 dernières vues
-        const history = await ProjectHistory.find({ userId: req.user.id }).sort({ viewedAt: -1 }).limit(10);
+        const me = await User.findById(req.user.id).select('interests');
+        const interests = parseInterestList(me?.interests);
 
-        // Cold start : aucune vue → section masquée côté frontend
-        if (history.length === 0) {
+        // Seulement les 10 dernières vues
+        const history = await ProjectHistory.find({ userId: req.user.id }).sort({ viewedAt: -1 }).limit(10);
+        const projectIds = history.map(entry => entry.projectId);
+
+        // Candidats : projets ouverts et visibles, ni déjà vus ni créés par la personne
+        const candidateQuery = {
+            _id: { $nin: projectIds },
+            ownerId: { $ne: req.user.id },
+            status: 'open',
+            visibility: { $ne: 'private' },
+        };
+
+        // Profil implicite (fréquence des thèmes vus), à partir de 3 vues
+        let vocabulary = [];
+        let profileVector = [];
+        if (history.length >= 3) {
+            const viewedProjects = await Project.find({ _id: { $in: projectIds } });
+            const tagFrequency = viewedProjects.flatMap(project => project.tags).reduce((acc, tag) => {
+                acc[tag] = (acc[tag] || 0) + 1;
+                return acc;
+            }, {});
+            vocabulary = Object.keys(tagFrequency);
+            profileVector = vocabulary.map(word => tagFrequency[word]);
+        }
+
+        // Ni centres d'intérêt ni historique : rien à recommander (section masquée côté front)
+        if (interests.length === 0 && history.length === 0) {
             return res.json([]);
         }
 
-        // Cold start partiel : moins de 3 vues → projets récents sans score
-        if (history.length < 3) {
-            const recent = await Project.find().sort({ createdAt: -1 }).limit(6).populate('ownerId', 'displayName firstName lastName avatarUrl plan');
+        // Peu d'historique et pas de centres d'intérêt : projets récents, sans score
+        if (interests.length === 0 && vocabulary.length === 0) {
+            const recent = await Project.find(candidateQuery).sort({ createdAt: -1 }).limit(6).populate(...RECOMMENDED_POPULATE);
             return res.json(recent.map(p => ({ project: p, score: null })));
         }
 
-        // Récupère les projets déjà vus pour en extraire les tags
-        const projectIds = history.map(entry => entry.projectId);
-        const viewedProjects = await Project.find({_id: { $in: projectIds}});
+        const candidates = await Project.find(candidateQuery).sort({ createdAt: -1 }).populate(...RECOMMENDED_POPULATE);
 
-        // Construit le profil implicite : fréquence de chaque tag dans l'historique
-        const allTags = viewedProjects.flatMap(project => project.tags)
-        const tagFrequency = allTags.reduce((acc, tag) => {
-            acc[tag] = (acc[tag] || 0) + 1;
-            return acc;
-        }, {})
-
-        // Le vocabulaire = liste des tags uniques vus ; le vecteur profil = leurs fréquences
-        const vocabulary = Object.keys(tagFrequency);
-        const profileVector = vocabulary.map(word => tagFrequency[word]);
-
-        // Candidats : projets non vus et non créés par l'utilisateur
-        const candidates = await Project.find({_id: {$nin: projectIds} , ownerId: {$ne: req.user.id}}).populate('ownerId', 'displayName firstName lastName avatarUrl plan');
-
-        // Calcule le score cosinus de chaque candidat par rapport au profil
         const scored = candidates.map(entry => {
-            const vec = buildVector(entry.tags, vocabulary);
-            const score = cosinSimilarity(profileVector, vec);
-            return { project: entry, score};
+            const plain = entry.toObject();
+            const matchedInterests = matchInterests(plain, interests);
+            const similarity = vocabulary.length ? cosinSimilarity(profileVector, buildVector(entry.tags, vocabulary)) : 0;
+            const interestScore = interests.length ? matchedInterests.length / interests.length : 0;
+            return { project: { ...plain, matchedInterests }, score: similarity + INTEREST_WEIGHT * interestScore };
         });
 
-        // Trie par score décroissant et retourne le top 10
-        const sorted = scored.sort((a,b) => b.score - a.score).slice(0, 10);
+        // Meilleurs scores d'abord (à égalité : le plus récent, ordre déjà trié) ; un score nul n'est pas une recommandation
+        const sorted = scored.filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 10);
         return res.json(sorted);
     }
     catch(err){

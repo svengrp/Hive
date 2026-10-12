@@ -214,3 +214,60 @@ test("EF-06 — charge la page suivante avec « Voir plus »", async () => {
   expect(await screen.findByText("Projet 14")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /voir plus/i })).not.toBeInTheDocument();
 });
+
+describe("Pour toi : centres d'intérêt", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    mockApi.mockImplementation((path) => {
+      if (path.startsWith("/projects?")) {
+        const params = new URLSearchParams(path.split("?")[1]);
+        const items = fakeProjects.map((p) => ({ ...p, matchedInterests: p._id === "1" ? ["tech"] : [] }));
+        const shown = params.get("forYou") === "1" ? items.filter((p) => p.matchedInterests.length) : items;
+        return Promise.resolve({ items: shown, total: shown.length, page: 1, hasMore: false });
+      }
+      return Promise.resolve([]);
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const projectRequests = () => mockApi.mock.calls.map(([path]) => path).filter((path) => path.startsWith("/projects?"));
+
+  test("visiteur passé par le parcours : ses centres d'intérêt partent avec la liste, badge sur les cartes", async () => {
+    localStorage.setItem("hive-onboarding", JSON.stringify({ status: "done", interests: ["tech", "music"] }));
+    render(<MemoryRouter><Projects /></MemoryRouter>);
+
+    expect(await screen.findByText("Pour toi · Tech & dev")).toBeInTheDocument();
+    expect(projectRequests().at(-1)).toContain("interests=tech%2Cmusic");
+    expect(projectRequests().at(-1)).not.toContain("forYou");
+    expect(screen.getByText(/Selon tes centres d'intérêt : Tech & dev, Musique/)).toBeInTheDocument();
+  });
+
+  test("l'onglet « Pour toi » ne garde que les projets correspondants", async () => {
+    localStorage.setItem("hive-onboarding", JSON.stringify({ status: "done", interests: ["tech"] }));
+    render(<MemoryRouter><Projects /></MemoryRouter>);
+    await screen.findByText("Projet Beta");
+
+    await userEvent.click(screen.getByRole("button", { name: "Pour toi" }));
+
+    await waitFor(() => expect(screen.queryByText("Projet Beta")).not.toBeInTheDocument());
+    expect(screen.getByText("Projet Alpha")).toBeInTheDocument();
+    expect(projectRequests().at(-1)).toContain("forYou=1");
+    expect(screen.getByRole("button", { name: "Pour toi" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("compte connecté : ses centres d'intérêt à lui, pas ceux du navigateur", async () => {
+    localStorage.setItem("hive-onboarding", JSON.stringify({ status: "done", interests: ["music"] }));
+    mockUseAuth.mockReturnValue({ user: { _id: "u1", interests: ["photo"] } });
+    render(<MemoryRouter><Projects /></MemoryRouter>);
+    await screen.findByText("Projet Alpha");
+    expect(projectRequests().at(-1)).toContain("interests=photo");
+  });
+
+  test("sans centres d'intérêt : pas d'onglet, rien d'envoyé", async () => {
+    render(<MemoryRouter><Projects /></MemoryRouter>);
+    await screen.findByText("Projet Alpha");
+    expect(screen.queryByRole("button", { name: "Pour toi" })).not.toBeInTheDocument();
+    expect(projectRequests().at(-1)).not.toContain("interests");
+  });
+});

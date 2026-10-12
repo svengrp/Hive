@@ -61,6 +61,12 @@ function ProjectCard({ project, index = 0 }) {
       <div className={classes.body}>
       {/* HEADER */}
       <div>
+        {/* Correspond aux centres d'intérêt de la personne (calculé par le serveur) */}
+        {project.matchedInterests?.length > 0 && (
+          <p className={classes.match}>
+            {t("card.forYou", { topics: project.matchedInterests.map((key) => t(`interests.${key}`)).join(", ") })}
+          </p>
+        )}
         <h3 className={classes.projectTitle}>{project.title}</h3>
         {ownerLabel && (
           <p className={classes.projectDescription}>

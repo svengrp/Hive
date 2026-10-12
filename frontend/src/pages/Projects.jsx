@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, X, Plus, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import ProjectCard from "../components/ProjectCard";
 import { useSeo } from "../lib/seo";
+import { myInterests } from "../lib/onboarding";
 import classes from "./Projects.module.css";
 
 // Only the most-used themes are shown up front; the rest live behind
@@ -52,6 +53,12 @@ export default function Projects() {
 
   const myId = user?._id || user?.id || "";
 
+  // Centres d'intérêt (compte ou parcours de bienvenue) : badge « Pour toi » sur les
+  // cartes, et onglet « Pour toi » qui ne garde que les projets correspondants
+  const interests = useMemo(() => myInterests(user), [user]);
+  const interestsKey = interests.join(",");
+  const [forYou, setForYou] = useState(false);
+
   const [recommended, setRecommended] = useState([]);
   const [boosted, setBoosted] = useState([]); // projets mis en avant (emplacement dédié, visible par tous)
 
@@ -87,6 +94,8 @@ export default function Projects() {
     if (debouncedQuery) params.set("q", debouncedQuery);
     if (selectedTags.length > 0) params.set("tags", selectedTags.join(","));
     if (selectedRegion) params.set("region", selectedRegion);
+    if (interestsKey) params.set("interests", interestsKey);
+    if (forYou && interestsKey) params.set("forYou", "1");
 
     // Ignore responses from requests that were superseded by newer filters.
     const id = ++requestId.current;
@@ -115,7 +124,7 @@ export default function Projects() {
         setLoadingMore(false);
       }
     }
-  }, [debouncedQuery, selectedTags, selectedRegion]);
+  }, [debouncedQuery, selectedTags, selectedRegion, interestsKey, forYou]);
 
   useEffect(() => {
     fetchPage(1);
@@ -151,9 +160,11 @@ export default function Projects() {
     setSearchQuery("");
     setSelectedTags([]);
     setSelectedRegion("");
+    setForYou(false);
   };
 
-  const hasActiveFilters = searchQuery || selectedTags.length > 0 || selectedRegion;
+  const hasActiveFilters = searchQuery || selectedTags.length > 0 || selectedRegion || forYou;
+  const interestNames = interests.map((key) => t(`interests.${key}`)).join(", ");
 
   // Most-used themes (computed server-side), plus any theme the user already picked.
   const popularTags = useMemo(
@@ -294,6 +305,43 @@ export default function Projects() {
           )}
         </div>
 
+        {/* TOUS / POUR TOI */}
+        {interests.length > 0 ? (
+          <div className={classes.viewRow}>
+            <div className={classes.viewTabs} role="group" aria-label={t("projects.viewLabel")}>
+              <button
+                type="button"
+                className={`${classes.viewTab} ${!forYou ? classes.viewTabActive : ""}`}
+                aria-pressed={!forYou}
+                onClick={() => setForYou(false)}
+              >
+                {t("projects.allTab")}
+              </button>
+              <button
+                type="button"
+                className={`${classes.viewTab} ${forYou ? classes.viewTabActive : ""}`}
+                aria-pressed={forYou}
+                onClick={() => setForYou(true)}
+              >
+                {t("projects.forYouTab")}
+              </button>
+            </div>
+            <p className={classes.viewHint}>
+              {t("projects.forYouHint", { topics: interestNames })}
+              {user && (
+                <>
+                  {" · "}
+                  <Link to="/profile" className={classes.viewHintLink}>{t("projects.editInterests")}</Link>
+                </>
+              )}
+            </p>
+          </div>
+        ) : user && (
+          <p className={`${classes.viewHint} ${classes.pickHint}`}>
+            <Link to="/profile" className={classes.viewHintLink}>{t("projects.pickInterests")}</Link>
+          </p>
+        )}
+
         {/* MIS EN AVANT (boosts) */}
         {boosted.length > 0 && !hasActiveFilters && (
           <div className={classes.recommendedSection}>
@@ -339,7 +387,16 @@ export default function Projects() {
             ))}
           </div>
         ) : projects.length === 0 ? (
-          <div className={classes.center}>{t("projects.noResults")}</div>
+          forYou ? (
+            <div className={classes.center}>
+              <p>{t("projects.forYouEmpty")}</p>
+              <button type="button" className={classes.loadMoreBtn} onClick={() => setForYou(false)}>
+                {t("projects.showAll")}
+              </button>
+            </div>
+          ) : (
+            <div className={classes.center}>{t("projects.noResults")}</div>
+          )
         ) : (
           <>
             <div className={classes.grid}>

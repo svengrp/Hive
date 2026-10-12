@@ -377,6 +377,72 @@
   cursor: pointer;
 }
 
+/* Tous / Pour toi */
+.viewRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 4px 0 28px;
+}
+
+.viewTabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-card-soft);
+}
+
+.viewTab {
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.viewTab:hover {
+  color: var(--text-main);
+}
+
+.viewTab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.viewTabActive {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  box-shadow: 0 1px 2px rgba(var(--shadow-rgb), 0.12);
+}
+
+.viewHint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.pickHint {
+  margin: 4px 0 24px;
+}
+
+.viewHintLink {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.viewHintLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .recommendedSection {
   margin-bottom: 40px;
 }

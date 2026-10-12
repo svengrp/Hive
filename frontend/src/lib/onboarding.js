@@ -51,6 +51,13 @@ export function writeOnboarding(state) {
   window.dispatchEvent(new Event(ONBOARDING_EVENT));
 }
 
+/* Centres d'intérêt à utiliser pour « Pour toi » : ceux du compte une fois connecté,
+   sinon ceux choisis pendant le parcours (gardés dans le navigateur). */
+export function myInterests(user) {
+  if (user) return cleanInterests(user.interests);
+  return readOnboarding().interests;
+}
+
 /* Visiteur déjà passé par le parcours (terminé ou mis de côté) et qui a répondu à
    quelque chose : l'accueil lui parle directement au lieu de lui présenter Hive. */
 export function isKnownVisitor(state) {
