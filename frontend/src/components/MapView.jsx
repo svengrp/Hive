@@ -290,6 +290,7 @@ function MapView() {
   // capturer le scroll de la page quand on la traverse simplement.
   const [mapActive, setMapActive] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const scrollBeforeFullscreen = useRef(0);
   const [showTwoFingers, setShowTwoFingers] = useState(false);
   const twoFingersTimer = useRef(null);
   const canvasRef = useRef(null);
@@ -330,6 +331,8 @@ function MapView() {
   };
 
   // Plein écran : bloque le défilement de la page et se ferme avec Échap.
+  // La carte sortant du flux, la page raccourcit et le navigateur remonte en
+  // haut : on rétablit en sortant la position notée avant d'entrer.
   useEffect(() => {
     if (!fullscreen) return undefined;
     const previousOverflow = document.body.style.overflow;
@@ -339,6 +342,7 @@ function MapView() {
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', onKey);
+      window.scrollTo({ top: scrollBeforeFullscreen.current, behavior: 'instant' });
     };
   }, [fullscreen]);
 
@@ -440,7 +444,10 @@ function MapView() {
         <button
           type="button"
           className={classes.fullscreenBtn}
-          onClick={() => setFullscreen((value) => !value)}
+          onClick={() => {
+            if (!fullscreen) scrollBeforeFullscreen.current = window.scrollY;
+            setFullscreen((value) => !value);
+          }}
           aria-label={fullscreen ? t("map.exitFullscreen") : t("map.fullscreen")}
           aria-pressed={fullscreen}
         >

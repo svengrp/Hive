@@ -7,7 +7,7 @@ import { useSocket } from "../context/SocketContext";
 import logoHive from "../img/logoHive.svg";
 import classes from "./Header.module.css";
 import { useTranslation } from "react-i18next";
-import { MessageSquare, Bell, X, Check, Menu, Sun, Moon, Plus, LogOut } from "lucide-react";
+import { MessageSquare, Bell, X, Check, Menu, Moon, Plus, LogOut } from "lucide-react";
 import { api } from "../lib/api";
 
 function formatTimeAgo(date) {
@@ -218,12 +218,15 @@ export default function Header() {
             </>
           )}
 
-          <label className={classes.themeSwitch} aria-label="Toggle theme">
-            {theme === "dark" ? <Moon size={14} className={classes.themeSwitchIcon} /> : <Sun size={14} className={classes.themeSwitchIcon} />}
+          {/* Interrupteur « Mode sombre » : activé quand le thème sombre est actif */}
+          <label className={classes.themeSwitch} title={t("nav.darkMode")}>
+            <Moon size={14} className={classes.themeSwitchIcon} aria-hidden="true" />
             <input
               type="checkbox"
+              role="switch"
+              aria-label={t("nav.darkMode")}
               className={classes.themeSwitchInput}
-              checked={theme === "light"}
+              checked={theme === "dark"}
               onChange={toggleTheme}
             />
             <span className={classes.themeSwitchTrack} />
@@ -333,9 +336,9 @@ export default function Header() {
 
         <div className={classes.drawerActions}>
           <div className={classes.drawerToggle} onClick={toggleTheme} style={{cursor:"pointer", justifyContent:"space-between"}}>
-            <span>{theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}</span>
-            <label className={classes.themeSwitch} aria-label="Toggle theme" onClick={e => e.stopPropagation()}>
-              <input type="checkbox" className={classes.themeSwitchInput} checked={theme === "light"} onChange={toggleTheme} />
+            <span>{t("nav.darkMode")}</span>
+            <label className={classes.themeSwitch} onClick={e => e.stopPropagation()}>
+              <input type="checkbox" role="switch" aria-label={t("nav.darkMode")} className={classes.themeSwitchInput} checked={theme === "dark"} onChange={toggleTheme} />
               <span className={classes.themeSwitchTrack} />
             </label>
           </div>
