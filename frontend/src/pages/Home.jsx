@@ -22,8 +22,6 @@ function Home() {
     <div>
       <section className={classes.hero} ref={heroRef}>
         <HeroNetwork pointerTarget={heroRef} />
-        <div className={classes.heroGlow1} />
-        <div className={classes.heroGlow2} />
 
         <div className={classes.heroInner} style={{ '--accent-delay': `${accentDelay}ms` }}>
           <h1 className={classes.title}>

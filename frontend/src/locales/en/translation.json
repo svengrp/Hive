@@ -166,7 +166,10 @@
     "notifTitle": "Notifications",
     "emailMessages": "Email me when I get a message",
     "emailMessagesHint": "Only when you're offline, and at most one email every 15 minutes per conversation.",
-    "notifSaveError": "The setting couldn't be saved."
+    "notifSaveError": "The setting couldn't be saved.",
+    "interests": "Interests",
+    "interestsHint": "Up to 3 topics, shown on your public profile.",
+    "noInterests": "No interests selected."
   },
   "projects": {
     "title": "Discover projects",
@@ -699,5 +702,100 @@
     "consentAfter": ".",
     "socialConsentBefore": "By continuing with Google or GitHub, you confirm you are 16 or older and accept the",
     "consentRequired": "Tick the box to accept the terms and confirm you are 16 or older."
+  },
+  "interests": {
+    "tech": "Tech & dev",
+    "design": "Design",
+    "business": "Entrepreneurship",
+    "marketing": "Marketing & comms",
+    "music": "Music",
+    "video": "Video & film",
+    "photo": "Photography",
+    "games": "Video games",
+    "art": "Art & illustration",
+    "writing": "Writing",
+    "education": "Education",
+    "science": "Science",
+    "environment": "Environment",
+    "social": "Nonprofit & social",
+    "sport": "Sport",
+    "health": "Health",
+    "food": "Food",
+    "events": "Events"
+  },
+  "onboarding": {
+    "later": "Later",
+    "stepOf": "Step {{current}} of {{total}}",
+    "progress": "{{value}}% complete",
+    "progressLabel": "Profile progress",
+    "steps": {
+      "name": "Name",
+      "interests": "Interests",
+      "location": "Location",
+      "goal": "Goal",
+      "account": "Account"
+    },
+    "back": "Back",
+    "skipStep": "Skip",
+    "continue": "Continue",
+    "optional": "(optional)",
+    "interests": {
+      "title": "What are you into?",
+      "lead": "Pick 3 topics. We use them to suggest projects that fit you.",
+      "counter": "{{count}} of {{max}} selected",
+      "titleNamed": "What are you into, {{name}}?"
+    },
+    "location": {
+      "title": "Where are you based?",
+      "lead": "Projects near you will show up first.",
+      "country": "Country",
+      "choose": "Choose a country",
+      "suggested": "Suggested",
+      "allCountries": "All countries",
+      "city": "City",
+      "cityPlaceholder": "e.g. Lausanne"
+    },
+    "goal": {
+      "title": "What brings you to Hive?",
+      "lead": "You can always do both.",
+      "join": {
+        "title": "Join a project",
+        "desc": "Find a project I like and bring my skills to it."
+      },
+      "launch": {
+        "title": "Launch my project",
+        "desc": "Find the right people to make it happen."
+      },
+      "both": {
+        "title": "A bit of both",
+        "desc": "Explore projects and maybe share my own."
+      }
+    },
+    "account": {
+      "create": "Create my account",
+      "login": "I already have an account",
+      "withoutAccount": "Continue without an account"
+    },
+    "name": {
+      "hello": "Hello",
+      "helloNamed": "Hello, {{name}}",
+      "lead": "Welcome to Hive. Let's get to know each other.",
+      "label": "What's your first name?",
+      "placeholder": "Your first name"
+    },
+    "finish": "Finish",
+    "final": {
+      "eyebrow": "Your space is ready",
+      "title": "Welcome to Hive.",
+      "titleNamed": "Welcome to Hive, {{name}}.",
+      "welcomeComma": "Welcome to Hive,",
+      "locating": "Getting your map ready…",
+      "projectsNearby_one": "{{count}} open project in your area",
+      "projectsNearby_other": "{{count}} open projects in your area",
+      "noProjects": "No projects here yet: yours could be the first",
+      "readiness": "Profile ready",
+      "readinessNote": "Create your account to keep your choices and join projects.",
+      "editAnswers": "Edit my answers"
+    }
   }
 }

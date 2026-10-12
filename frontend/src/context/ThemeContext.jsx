@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  // Clair par défaut : l'ambiance crème/miel porte mieux la convivialité de Hive.
+  // Clair par défaut.
   // Le choix explicite de l'utilisateur (bouton du Header) reste mémorisé.
   const [theme, setTheme] = useState(() => localStorage.getItem("hive-theme") || "light");
 
@@ -11,7 +11,7 @@ export function ThemeProvider({ children }) {
     document.body.classList.toggle("light", theme === "light");
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", theme === "light" ? "#faf6f0" : "#16120e");
+      ?.setAttribute("content", theme === "light" ? "#f6f7f9" : "#0c0d10");
   }, [theme]);
 
   const toggleTheme = () => {

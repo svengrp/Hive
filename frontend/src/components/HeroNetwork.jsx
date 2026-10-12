@@ -14,9 +14,9 @@ function readRgb(name, fallback) {
   return value || fallback;
 }
 
-const readAccent = () => readRgb('--accent-rgb', '240, 169, 59');
-// Un membre sur quatre prend la teinte terracotta (--highlight) : des profils variés dans la ruche.
-const readHighlight = () => readRgb('--highlight-rgb', '195, 166, 238');
+const readAccent = () => readRgb('--accent-rgb', '36, 89, 214');
+// Un membre sur quatre prend la teinte --highlight : des profils variés dans la ruche.
+const readHighlight = () => readRgb('--highlight-rgb', '36, 89, 214');
 
 function HeroNetwork({ pointerTarget }) {
   const canvasRef = useRef(null);

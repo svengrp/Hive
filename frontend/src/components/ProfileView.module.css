@@ -73,6 +73,25 @@
   max-width: 600px;
 }
 
+.interestList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.interestChip {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-card-soft);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .reputation {
   margin-left: auto;
   font-size: 15px;
@@ -198,6 +217,12 @@
   font-size: 17px;
   font-weight: 600;
   color: var(--text-main);
+}
+
+.cardHint {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 .avatarEditor {

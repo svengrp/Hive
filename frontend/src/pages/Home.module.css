@@ -8,38 +8,6 @@
   padding: 56px 32px 64px;
 }
 
-.heroGlow1 {
-  position: absolute;
-  top: -60px;
-  right: -40px;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  /* Lumière d'ambiance, pas un disque : flou large et opacité basse */
-  background: rgba(var(--cta-rgb), 0.14);
-  filter: blur(48px);
-  pointer-events: none;
-  animation: drift 14s ease-in-out infinite alternate;
-}
-
-.heroGlow2 {
-  position: absolute;
-  bottom: -80px;
-  right: 220px;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: rgba(var(--sage-rgb), 0.14);
-  filter: blur(48px);
-  pointer-events: none;
-  animation: drift 18s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to   { transform: translate3d(-60px, 40px, 0) scale(1.25); }
-}
-
 .heroInner {
   position: relative;
   max-width: 720px;
@@ -170,9 +138,9 @@
   gap: 8px;
   padding: 12px 22px;
   border-radius: 999px;
-  background: var(--sage-soft);
-  border: 1px solid rgba(var(--sage-rgb), 0.35);
-  color: var(--sage-ink);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  color: var(--text-main);
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
@@ -180,9 +148,8 @@
 }
 
 .secondaryCta:hover {
-  background: rgba(var(--sage-rgb), 0.2);
-  border-color: var(--sage);
-  color: var(--sage-ink);
+  background: var(--bg-card-soft);
+  border-color: rgba(var(--accent-rgb), 0.35);
 }
 
 .scrollCue {
@@ -193,9 +160,9 @@
   height: 40px;
   margin-top: 40px;
   border-radius: 50%;
-  border: 1px solid rgba(var(--sage-rgb), 0.4);
+  border: 1px solid var(--border-soft);
   background: transparent;
-  color: var(--sage);
+  color: var(--text-muted);
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease;
   animation:
@@ -204,8 +171,8 @@
 }
 
 .scrollCue:hover {
-  border-color: var(--sage);
-  color: var(--sage);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  color: var(--accent);
 }
 
 @keyframes bounce {
@@ -218,8 +185,6 @@
   .word,
   .subtitle,
   .actions,
-  .heroGlow1,
-  .heroGlow2,
   .titleAccent::after {
     animation: none;
   }

@@ -7,6 +7,7 @@ const ProjectHistory = require("../models/ProjectHistory");
 const { deleteUserAccount } = require("../utils/accountDeletion");
 const bcrypt = require("bcrypt");
 const { containsProfanity } = require('../utils/profanityFilter');
+const { normalizeInterests, ONBOARDING_GOALS } = require('../utils/interests');
 
 /* Retire les champs sensibles (passwordHash, codes de reset…) avant d'exposer un profil public */
 function sanitizePublicProfile(user) {
@@ -23,6 +24,7 @@ function sanitizePublicProfile(user) {
     languages: user.languages,
     education: user.education,
     skills: user.skills,
+    interests: user.interests || [],
     // Vie privée : jamais la rue ni le code postal en public, seulement ville et pays
     address: { city: user.address?.city || "", country: user.address?.country || "" },
     reputation: user.reputation,
@@ -83,6 +85,7 @@ exports.updateInfos = async (req, res) => {
       education,
       avatarUrl,
       address,
+      interests,
     } = req.body;
 
     const updateData = {
@@ -97,6 +100,7 @@ exports.updateInfos = async (req, res) => {
       education,
       avatarUrl,
       address,
+      interests: normalizeInterests(interests) ?? undefined,
     };
 
     Object.keys(updateData).forEach(
@@ -116,6 +120,42 @@ exports.updateInfos = async (req, res) => {
   } catch (err) {
     console.error("Update profile error:", err);
     res.status(500).json({ message: "Erreur lors de la mise à jour du profil" });
+  }
+};
+
+// PUT /user/onboarding — réponses du parcours de bienvenue (prénom, centres d'intérêt, pays, objectif),
+// envoyées une fois le compte créé.
+// Ne remplit que ce qui est encore vide : un choix déjà fait sur le profil n'est jamais écrasé.
+exports.saveOnboarding = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
+
+    const { country, city, goal, firstName } = req.body || {};
+    const interests = normalizeInterests(req.body?.interests);
+    const clean = (value) => (typeof value === "string" ? value.trim().slice(0, 80) : "");
+
+    if (interests?.length && !user.interests?.length) user.interests = interests;
+    const name = typeof firstName === "string" ? firstName.trim().slice(0, 40) : "";
+    if (name && !user.firstName) {
+      if (containsProfanity(name)) return res.status(400).json({ message: 'Le contenu contient des termes inappropriés.' });
+      user.firstName = name;
+    }
+    if (ONBOARDING_GOALS.includes(goal) && !user.onboardingGoal) user.onboardingGoal = goal;
+    if (clean(country) && !user.address?.country) {
+      user.address = user.address || {};
+      user.address.country = clean(country);
+      if (clean(city) && !user.address.city) user.address.city = clean(city);
+    }
+
+    await user.save();
+    const saved = user.toObject();
+    delete saved.passwordHash;
+    return res.status(200).json(saved);
+  } catch (err) {
+    console.error("Save onboarding error:", err);
+    return res.status(500).json({ message: "Erreur lors de l'enregistrement" });
   }
 };
 

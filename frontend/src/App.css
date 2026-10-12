@@ -1,44 +1,42 @@
 :root {
-  /* Hive — palette "miel & terracotta" : neutres chauds couleur cire/propolis,
-     miel comme couleur d'action (logo, boutons, liens, focus), terracotta pour
-     les mises en avant. Le sombre est un brun profond, jamais un noir pur. */
-  --bg-main: #16120e;
-  --bg-surface: #1c1713;
-  --bg-card: #231d17;
-  --bg-card-soft: #2c251e;
+  /* Hive — palette « graphite & bleu » : neutres froids (gris ardoise), un seul
+     bleu pour l'action (boutons, liens, focus, logo), le vert pour les états
+     positifs. Pas de dégradé ni de seconde couleur vive : un SaaS sobre. */
+  --bg-main: #0c0d10;
+  --bg-surface: #121418;
+  --bg-card: #16181d;
+  --bg-card-soft: #1e2127;
   --bg-input: var(--bg-surface);
-  --border-soft: #3a3128;
-  --accent: #f0a93b;
-  --accent-hover: #f6bc5e;
-  --accent-rgb: 240, 169, 59;
-  --cta: #f0a93b;
-  --cta-hover: #f6bc5e;
-  --cta-text: #2a1805;
-  --cta-rgb: 240, 169, 59;
-  --highlight: #e8876b;
-  --highlight-rgb: 232, 135, 107;
-  --highlight-text: #2a1805;
-  /* Sauge : 2e couleur de marque. Miel + sauge = la ruche et les fleurs, la
-     récolte et la croissance ; harmonie chaude/froide douce, loin du duo
-     orange + blanc des SaaS. --sage-on = texte/icône posé sur la sauge. */
-  --sage: #9dc18e;
-  --sage-rgb: 157, 193, 142;
-  --sage-soft: rgba(157, 193, 142, 0.12);
-  --sage-ink: #c4dcb7;
-  --sage-on: #1f2a17;
-  --hive-band: #1f1a15;
-  --text-main: #f5ecdf;
-  --text-muted: #a89885;
+  --border-soft: #2a2e36;
+  --accent: #5b8def;
+  --accent-hover: #7aa3f3;
+  --accent-rgb: 91, 141, 239;
+  --cta: #2f6fe4;
+  --cta-hover: #4280f0;
+  --cta-text: #ffffff;
+  --cta-rgb: 47, 111, 228;
+  /* Pastilles de non-lus, étoiles, mises en avant : même bleu que l'action */
+  --highlight: #5b8def;
+  --highlight-rgb: 91, 141, 239;
+  --highlight-text: #ffffff;
+  /* Vert : états positifs (ouvert, validé, disponible). --sage-on = texte posé dessus. */
+  --sage: #3fb67a;
+  --sage-rgb: 63, 182, 122;
+  --sage-soft: rgba(63, 182, 122, 0.12);
+  --sage-ink: #7fd4a6;
+  --sage-on: #062414;
+  --hive-band: #111317;
+  --text-main: #ecedf0;
+  --text-muted: #969ca8;
   --danger: #e5484d;
-  --bubble-out-bg: #5e3f14;
-  --bubble-out-text: #f8efe2;
-  /* Couleurs par personne (avatars, noms dans les groupes) : miel, lavande,
-     bleuet, corail, trèfle — lisibles sur fond sombre. */
-  --person-1: #e8a547;
-  --person-2: #b79be3;
-  --person-3: #7fa6e0;
+  --bubble-out-bg: #2a5bc4;
+  --bubble-out-text: #ffffff;
+  /* Couleurs par personne (avatars, noms dans les groupes), lisibles sur fond sombre. */
+  --person-1: #6f9cf2;
+  --person-2: #b39be0;
+  --person-3: #4fc1b4;
   --person-4: #e48a73;
-  --person-5: #8fbf8a;
+  --person-5: #d6b25e;
   /* Échelles partagées (rayons, espacements, mouvement) */
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -61,52 +59,48 @@
   --danger-solid: #c9353a;
   /* Hauteur réelle du Header : 64px de barre + 1px de bordure basse */
   --app-header-h: 65px;
-  /* Ombres : noires en sombre ; teintées brun chaud et allégées en clair. */
+  /* Ombres : noires en sombre ; bleu-gris et allégées en clair. */
   --shadow-rgb: 0, 0, 0;
   --shadow-k: 1;
 }
 
 body.light {
-  /* Page crème légère, contenu sur blanc : le beige empilé alourdissait tout.
-     Le beige ne reste que pour les petits éléments (tags, puces, fonds d'avatar). */
-  --bg-main: #faf6f0;
+  /* Page gris très clair, contenu sur blanc, bordures discrètes. */
+  --bg-main: #f6f7f9;
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-soft: #f4eee5;
-  --bg-input: #faf7f2;
-  --border-soft: #e8dccb;
-  /* Accent texte : ambre net (AA sur crème). Boutons : miel lumineux avec texte
-     encre, comme en sombre ; l'ancien caramel #a0560d paraissait marron. */
-  --accent: #b45309;
-  --accent-hover: #92400e;
-  --accent-rgb: 180, 83, 9;
-  --cta: #f08c1e;
-  --cta-hover: #f5a040;
-  --cta-text: #2a1805;
-  --cta-rgb: 240, 140, 30;
-  --highlight: #b4472f;
-  --highlight-rgb: 180, 71, 47;
+  --bg-card-soft: #f0f2f5;
+  --bg-input: #ffffff;
+  --border-soft: #e3e6eb;
+  --accent: #2459d6;
+  --accent-hover: #1c47b0;
+  --accent-rgb: 36, 89, 214;
+  --cta: #2459d6;
+  --cta-hover: #1c47b0;
+  --cta-text: #ffffff;
+  --cta-rgb: 36, 89, 214;
+  --highlight: #2459d6;
+  --highlight-rgb: 36, 89, 214;
   --highlight-text: #ffffff;
-  --sage: #4f7046;
-  --sage-rgb: 79, 112, 70;
-  --sage-soft: #e9efe2;
-  --sage-ink: #34502d;
+  --sage: #1f8a55;
+  --sage-rgb: 31, 138, 85;
+  --sage-soft: #e7f5ed;
+  --sage-ink: #166a41;
   --sage-on: #ffffff;
-  /* Fond « cire » légèrement plus doré pour les bandes de section. */
-  --hive-band: #f4ebdb;
-  --text-main: #2b2016;
-  --text-muted: #6f5f4c;
+  --hive-band: #eef0f4;
+  --text-main: #16181d;
+  --text-muted: #5d6470;
   --danger: #c9353a;
-  --bubble-out-bg: #fbe1b4;
-  --bubble-out-text: #3a2508;
+  --bubble-out-bg: #2459d6;
+  --bubble-out-text: #ffffff;
   /* Variantes foncées pour garder un contraste AA sur fond clair. */
-  --person-1: #8e5410;
+  --person-1: #2459d6;
   --person-2: #6e4e9e;
-  --person-3: #2f5f9e;
+  --person-3: #13796f;
   --person-4: #a5452e;
-  --person-5: #3f7440;
+  --person-5: #85620f;
   --danger-text: var(--danger);
-  --shadow-rgb: 60, 40, 20;
+  --shadow-rgb: 16, 24, 40;
   --shadow-k: 0.45;
 }
 
@@ -117,10 +111,10 @@ body.light {
 }
 
 html{
-  background: #16120e;
+  background: #0c0d10;
 }
 html:has(body.light) {
-  background: #faf6f0;
+  background: #f6f7f9;
 }
 html, body {
   height: 100%;
@@ -151,6 +145,6 @@ body {
 }
 
 body.light {
-  background: #faf6f0;
+  background: var(--bg-main);
 }
 

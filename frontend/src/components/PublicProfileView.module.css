@@ -218,3 +218,23 @@
 .messageBtn:hover {
   background: rgba(var(--accent-rgb), 0.15);
 }
+
+/* Centres d'intérêt sous la bio */
+.interestList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.interestChip {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-card-soft);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 500;
+}

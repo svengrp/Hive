@@ -17,6 +17,7 @@ import MessagesPage from "./pages/MessagesPage";
 import Abonnement from "./pages/Abonnement";
 import OAuthCallback from "./pages/OAuthCallback";
 import BottomNav from "./components/BottomNav";
+import Onboarding from "./components/Onboarding";
 import Footer from "./components/Footer";
 import { PrivacyPolicy, Terms, Imprint } from "./pages/Legal";
 import { useTranslation } from "react-i18next";
@@ -69,6 +70,7 @@ export default function App() {
         <Footer />
       </main>
       <BottomNav />
+      <Onboarding />
     </>
   );
 }

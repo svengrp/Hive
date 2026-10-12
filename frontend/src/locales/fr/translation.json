@@ -166,7 +166,10 @@
     "notifTitle": "Notifications",
     "emailMessages": "M'envoyer un email quand je reçois un message",
     "emailMessagesHint": "Seulement quand tu n'es pas connecté·e, et au plus un email toutes les 15 minutes par conversation.",
-    "notifSaveError": "Le réglage n'a pas pu être enregistré."
+    "notifSaveError": "Le réglage n'a pas pu être enregistré.",
+    "interests": "Centres d'intérêt",
+    "interestsHint": "Jusqu'à 3 sujets, affichés sur ton profil public.",
+    "noInterests": "Aucun centre d'intérêt choisi."
   },
   "projects": {
     "title": "Découvrez les projets",
@@ -699,5 +702,100 @@
     "consentAfter": ".",
     "socialConsentBefore": "En continuant avec Google ou GitHub, tu confirmes avoir 16 ans ou plus et tu acceptes les",
     "consentRequired": "Coche la case pour accepter les conditions et confirmer que tu as 16 ans ou plus."
+  },
+  "interests": {
+    "tech": "Tech & dev",
+    "design": "Design",
+    "business": "Entrepreneuriat",
+    "marketing": "Marketing & com",
+    "music": "Musique",
+    "video": "Vidéo & cinéma",
+    "photo": "Photo",
+    "games": "Jeux vidéo",
+    "art": "Art & illustration",
+    "writing": "Écriture",
+    "education": "Éducation",
+    "science": "Science",
+    "environment": "Environnement",
+    "social": "Associatif & social",
+    "sport": "Sport",
+    "health": "Santé",
+    "food": "Cuisine",
+    "events": "Événements"
+  },
+  "onboarding": {
+    "later": "Plus tard",
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "progress": "{{value}} % complété",
+    "progressLabel": "Progression de ton profil",
+    "steps": {
+      "name": "Prénom",
+      "interests": "Centres d'intérêt",
+      "location": "Localisation",
+      "goal": "Objectif",
+      "account": "Compte"
+    },
+    "back": "Retour",
+    "skipStep": "Passer",
+    "continue": "Continuer",
+    "optional": "(facultatif)",
+    "interests": {
+      "title": "Qu'est-ce qui t'intéresse ?",
+      "lead": "Choisis 3 sujets. On s'en sert pour te proposer des projets qui te correspondent.",
+      "counter": "{{count}} sur {{max}} sélectionnés",
+      "titleNamed": "Qu'est-ce qui t'intéresse, {{name}} ?"
+    },
+    "location": {
+      "title": "Où es-tu basé·e ?",
+      "lead": "Les projets proches de chez toi apparaîtront en premier.",
+      "country": "Pays",
+      "choose": "Choisir un pays",
+      "suggested": "Suggestions",
+      "allCountries": "Tous les pays",
+      "city": "Ville",
+      "cityPlaceholder": "Ex. Lausanne"
+    },
+    "goal": {
+      "title": "Qu'est-ce qui t'amène sur Hive ?",
+      "lead": "Tu pourras toujours faire les deux.",
+      "join": {
+        "title": "Rejoindre un projet",
+        "desc": "Trouver un projet qui me plaît et y apporter mes compétences."
+      },
+      "launch": {
+        "title": "Lancer mon projet",
+        "desc": "Trouver les bonnes personnes pour le réaliser."
+      },
+      "both": {
+        "title": "Un peu des deux",
+        "desc": "Découvrir des projets et peut-être proposer le mien."
+      }
+    },
+    "account": {
+      "create": "Créer mon compte",
+      "login": "J'ai déjà un compte",
+      "withoutAccount": "Continuer sans compte"
+    },
+    "name": {
+      "hello": "Bonjour",
+      "helloNamed": "Bonjour, {{name}}",
+      "lead": "Bienvenue sur Hive. Commençons par faire connaissance.",
+      "label": "Comment tu t'appelles ?",
+      "placeholder": "Ton prénom"
+    },
+    "finish": "Terminer",
+    "final": {
+      "eyebrow": "Ton espace est prêt",
+      "title": "Bienvenue sur Hive.",
+      "titleNamed": "Bienvenue sur Hive, {{name}}.",
+      "welcomeComma": "Bienvenue sur Hive,",
+      "locating": "On prépare ta carte…",
+      "projectsNearby_one": "{{count}} projet ouvert dans ta zone",
+      "projectsNearby_other": "{{count}} projets ouverts dans ta zone",
+      "noProjects": "Pas encore de projet ici : le tien pourrait être le premier",
+      "readiness": "Profil prêt",
+      "readinessNote": "Crée ton compte pour garder tes choix et rejoindre des projets.",
+      "editAnswers": "Modifier mes réponses"
+    }
   }
 }

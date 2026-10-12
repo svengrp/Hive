@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
 import HiveRating from "./HiveRating";
 import ProjectCard from "./ProjectCard";
+import { cleanInterests } from "../lib/interests";
 import { useSeo } from "../lib/seo";
 import classes from "./PublicProfileView.module.css";
 
@@ -93,6 +94,13 @@ export default function PublicProfileView() {
         <div className={classes.heroInfo}>
           <h1>{displayName}</h1>
           {profile.bio && <p>{profile.bio}</p>}
+          {cleanInterests(profile.interests).length > 0 && (
+            <ul className={classes.interestList} aria-label={t("profile.interests")}>
+              {cleanInterests(profile.interests).map((key) => (
+                <li key={key} className={classes.interestChip}>{t(`interests.${key}`)}</li>
+              ))}
+            </ul>
+          )}
           <div className={classes.ratingRow}>
             <HiveRating reputation={profile.reputation} />
           </div>

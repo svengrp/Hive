@@ -103,8 +103,8 @@
   max-width: calc(100% - 48px);
   padding: 12px 18px;
   border-radius: 12px;
-  background: rgba(22, 18, 14, 0.82);
-  color: #f5ecdf;
+  background: rgba(12, 13, 16, 0.82);
+  color: #ecedf0;
   font-size: 14px;
   font-weight: 500;
   text-align: center;
@@ -137,8 +137,8 @@
   z-index: 410;
   padding: 8px 16px;
   border-radius: 999px;
-  background: rgba(22, 18, 14, 0.78);
-  color: #f5ecdf;
+  background: rgba(12, 13, 16, 0.78);
+  color: #ecedf0;
   font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
@@ -168,7 +168,7 @@
   border: 1px solid rgba(var(--accent-rgb), 0.55);
   box-shadow:
     0 10px 24px rgba(var(--shadow-rgb), calc(0.28 * var(--shadow-k))),
-    inset 0 0 0 1px rgba(255, 246, 230, 0.12);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 .clusterMarker::before,
@@ -197,8 +197,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(22, 18, 14, 0.9);
-  color: #f5ecdf;
+  background: rgba(12, 13, 16, 0.9);
+  color: #ecedf0;
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.01em;

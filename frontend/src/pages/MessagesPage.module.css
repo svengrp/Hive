@@ -29,7 +29,7 @@
 :global(body.light) .layout {
   --msg-elevated: var(--bg-surface);
   --bubble-out-border: rgba(var(--accent-rgb), 0.22);
-  --shadow-pop: 0 12px 32px rgba(60, 40, 20, 0.14);
+  --shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.14);
   /* Sur fonds clairs, les mêmes effets demandent plus de contraste */
   --hover-neutral: color-mix(in srgb, var(--text-main) 10%, transparent);
   --row-active-bg: rgba(var(--accent-rgb), 0.16);

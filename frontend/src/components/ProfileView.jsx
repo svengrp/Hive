@@ -10,6 +10,8 @@ import PrivacySettings from "./PrivacySettings";
 import UserAvatar from "./UserAvatar";
 import classes from "./ProfileView.module.css";
 import ProjectCard from "./ProjectCard";
+import InterestPicker from "./InterestPicker";
+import { cleanInterests } from "../lib/interests";
 
 function getDisplayName(user) {
   return user.displayName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
@@ -42,6 +44,7 @@ export default function Profile() {
     languages: [],
     skills: [],
     education: [],
+    interests: [],
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -118,6 +121,7 @@ export default function Profile() {
         languages: currentUser.languages || [],
         skills: currentUser.skills || [],
         education: currentUser.education || [],
+        interests: cleanInterests(currentUser.interests),
       });
     } catch (err) {
       console.error(err);
@@ -189,6 +193,7 @@ export default function Profile() {
           languages: form.languages,
           skills: form.skills,
           education: form.education,
+          interests: form.interests,
           avatarUrl: form.avatarUrl,
           address: { city: form.city, country: form.country },
         }),
@@ -245,6 +250,13 @@ export default function Profile() {
             <h1>{getDisplayName(profile)}</h1>
             <div className={classes.profileEmail}>{profile.email}</div>
             {profile.bio && <div className={classes.profileBio}>{profile.bio}</div>}
+            {profile.interests?.length > 0 && (
+              <ul className={classes.interestList} aria-label={t("profile.interests")}>
+                {cleanInterests(profile.interests).map((key) => (
+                  <li key={key} className={classes.interestChip}>{t(`interests.${key}`)}</li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className={classes.reputation}>
@@ -408,6 +420,16 @@ export default function Profile() {
                   <label className={classes.label}>{t("profile.bio")}</label>
                   <textarea className={classes.textarea} rows="3" name="bio" value={form.bio} onChange={handleChange} />
                 </div>
+              </div>
+
+              <div className={classes.card}>
+                <h3 className={classes.cardTitle} id="profile-interests-title">{t("profile.interests")}</h3>
+                <p className={classes.cardHint}>{t("profile.interestsHint")}</p>
+                <InterestPicker
+                  value={form.interests}
+                  onChange={(interests) => setForm((current) => ({ ...current, interests }))}
+                  labelledBy="profile-interests-title"
+                />
               </div>
 
               <div className={classes.card}>

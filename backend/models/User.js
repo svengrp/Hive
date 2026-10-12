@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema({
   education: { type: [String], default: [] },
   skills: { type: [String], default: [] },
   avatarUrl: { type: String, default: "/avatars/default.png" },
+  // Centres d'intérêt (clés de utils/interests.js), choisis à l'arrivée ou sur le profil
+  interests: { type: [String], default: [] },
+  // Réponse du parcours de bienvenue : rejoindre un projet, lancer le sien, ou les deux
+  onboardingGoal: { type: String, enum: ['join', 'launch', 'both', null], default: null },
 
   // --- Réputation ---
   reputation: {
