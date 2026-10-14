@@ -68,12 +68,34 @@ export default function Onboarding() {
   // Page figée derrière, Échap = « Plus tard »
   useEffect(() => {
     if (!open) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // iOS Safari ignore overflow:hidden sur body : on fige la page en position fixe,
+    // sinon le doigt fait défiler l'accueil derrière et la barre d'adresse se replie
+    const { body, documentElement: html } = document;
+    const scrollY = window.scrollY;
+    const previous = {
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      htmlOverflow: html.style.overflow,
+      htmlOverscroll: html.style.overscrollBehavior,
+    };
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
     const onKey = (event) => { if (event.key === "Escape") skipAll(); };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      body.style.overflow = previous.bodyOverflow;
+      body.style.position = previous.bodyPosition;
+      body.style.top = previous.bodyTop;
+      body.style.width = previous.bodyWidth;
+      html.style.overflow = previous.htmlOverflow;
+      html.style.overscrollBehavior = previous.htmlOverscroll;
+      if (scrollY) window.scrollTo(0, scrollY);
       window.removeEventListener("keydown", onKey);
     };
     // skipAll ne dépend que de setState/setOpen (stables)
