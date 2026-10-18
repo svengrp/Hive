@@ -104,7 +104,7 @@ export default function BoostPanel({ project, onBoosted }) {
           {t("billing.boostActiveUntil", { date: until })}
         </p>
       ) : (
-        <p className={classes.text}>{t("billing.boostIdle", { hours })}</p>
+        <p className={classes.text}>{canBoost ? t("billing.boostIdle", { hours }) : t("billing.boostClosed")}</p>
       )}
       {action}
       {feedback && (

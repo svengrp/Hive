@@ -8,6 +8,7 @@ import PasswordStrengthMeter, { computeEntropy } from "./PasswordValidator";
 import FloatingField from "./FloatingField";
 import { isKnownVisitor, readOnboarding } from "../lib/onboarding";
 import SocialLogin from "./SocialLogin";
+import OtpInput from "./OtpInput";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,15}$/;
@@ -17,7 +18,7 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
+  const [verificationCode, setVerificationCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
@@ -36,21 +37,6 @@ export default function RegisterForm() {
   const fromOnboarding = isKnownVisitor(onboarding) && !onboarding.synced;
   const onboardingName = onboarding.firstName.trim();
 
-  const handleCodeChange = (value, index) => {
-    if (!/^\d?$/.test(value)) return;
-    const newCode = [...verificationCode];
-    newCode[index] = value;
-    setVerificationCode(newCode);
-    if (value && index < 5) {
-      document.getElementById(`reg-otp-${index + 1}`)?.focus();
-    }
-  };
-
-  const handleCodeKeyDown = (e, index) => {
-    if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
-      document.getElementById(`reg-otp-${index - 1}`)?.focus();
-    }
-  };
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   const handleRegister = async (e) => {
@@ -100,7 +86,7 @@ export default function RegisterForm() {
     setError("");
     setSuccess("");
 
-    const otpCode = verificationCode.join("");
+    const otpCode = verificationCode;
     if (otpCode.length !== 6) {
       setError(t("register.verifyCodeRequired"));
       return;
@@ -247,22 +233,7 @@ export default function RegisterForm() {
               </p>
             </div>
 
-            <div className={classes.otpWrapper}>
-              {verificationCode.map((digit, index) => (
-                <input
-                  key={index}
-                  id={`reg-otp-${index}`}
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength="1"
-                  className={classes.otpInput}
-                  value={digit}
-                  onChange={(e) => handleCodeChange(e.target.value, index)}
-                  onKeyDown={(e) => handleCodeKeyDown(e, index)}
-                />
-              ))}
-            </div>
+            <OtpInput value={verificationCode} onChange={setVerificationCode} autoFocus idPrefix="reg-otp" />
 
             {error && <p className={classes.error} role="alert">{error}</p>}
             {success && <p className={classes.success} role="status">{success}</p>}

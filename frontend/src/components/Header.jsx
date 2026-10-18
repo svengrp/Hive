@@ -5,10 +5,19 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useSocket } from "../context/SocketContext";
 import logoHive from "../img/logoHive.svg";
+import { avatarSrc } from "../lib/avatar";
+
 import classes from "./Header.module.css";
 import { useTranslation } from "react-i18next";
 import { MessageSquare, Bell, X, Check, Menu, Moon, Plus, LogOut } from "lucide-react";
 import { api } from "../lib/api";
+
+// Photo de l'expéditeur d'une notification (lien externe ou photo envoyée, servie par l'API)
+const notifAvatar = (n) => avatarSrc({
+  _id: n.meta?.senderId,
+  avatarUrl: n.meta?.senderAvatarUrl,
+  avatarVersion: n.meta?.senderAvatarVersion,
+});
 
 function formatTimeAgo(date) {
   const diff = (Date.now() - new Date(date)) / 1000;
@@ -102,8 +111,8 @@ export default function Header() {
 
   const renderNotifAvatar = (n) => (
     <div className={classes.notifAvatar}>
-      {n.meta?.senderAvatarUrl
-        ? <img src={n.meta.senderAvatarUrl} alt="" className={classes.notifAvatarImg} />
+      {notifAvatar(n)
+        ? <img src={notifAvatar(n)} alt="" className={classes.notifAvatarImg} />
         : <span className={classes.notifAvatarDefault}>{(n.meta?.senderName?.[0] || '?').toUpperCase()}</span>
       }
     </div>
@@ -296,8 +305,8 @@ export default function Header() {
           <>
             <Link to="/profile" className={classes.drawerUserCard} onClick={closeMenu}>
               <div className={classes.drawerAvatar}>
-                {user.avatarUrl
-                  ? <img src={user.avatarUrl} alt="" className={classes.drawerAvatarImg} />
+                {avatarSrc(user)
+                  ? <img src={avatarSrc(user)} alt="" className={classes.drawerAvatarImg} />
                   : <span>{(user.displayName || user.firstName || user.email || "?")[0].toUpperCase()}</span>
                 }
               </div>

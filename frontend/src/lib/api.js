@@ -5,6 +5,16 @@ export const BASE_URL =
 // Fonction API générique
 // ---------------------------------------------------
 
+/* Erreur lisible (message du serveur) qui garde aussi le statut et le code renvoyés,
+   ex. err.code === "email_not_verified" à la connexion. */
+function apiError(res, data, fallback) {
+  const err = new Error(data?.message || data?.error || fallback);
+  err.status = res.status;
+  err.code = data?.code;
+  err.data = data;
+  return err;
+}
+
 export async function api(path, options = {}) {
   const token = localStorage.getItem("token");
 
@@ -33,16 +43,12 @@ export async function api(path, options = {}) {
       localStorage.removeItem("user");
       window.location.href = "/login";
     }
-    throw new Error(data?.message || data?.error || "Email ou mot de passe incorrect.");
+    throw apiError(res, data, "Email ou mot de passe incorrect.");
   }
 
-if (!res.ok) {
-  throw new Error(
-    data?.message ||
-    data?.error ||
-    res.statusText
-  );
-}
+  if (!res.ok) {
+    throw apiError(res, data, res.statusText);
+  }
 
   return data;
 }

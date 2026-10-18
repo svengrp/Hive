@@ -22,19 +22,36 @@ jest.mock("../context/ThemeContext", () => ({
   useTheme: () => ({ theme: "light", toggleTheme: jest.fn() }),
 }));
 
+// Carte Leaflet factice : même objet à chaque rendu (sinon les effets de la carte se relancent sans fin)
+const mockMap = {
+  setView: jest.fn(),
+  panTo: jest.fn(),
+  flyTo: jest.fn(),
+  getZoom: () => 12,
+  on: jest.fn(),
+  off: jest.fn(),
+  invalidateSize: jest.fn(),
+  latLngToContainerPoint: () => ({ x: 0, y: 0 }),
+  containerPointToLatLng: () => ({ lat: 46.2, lng: 6.14 }),
+  project: () => ({ x: 0, y: 0, subtract: () => ({ x: 0, y: 0 }), add: () => ({ x: 0, y: 0 }) }),
+  unproject: () => ({ lat: 46.2, lng: 6.14 }),
+  getSize: () => ({ x: 800, y: 600 }),
+  getContainer: () => global.document.createElement("div"),
+  scrollWheelZoom: { enable: jest.fn(), disable: jest.fn() },
+  dragging: { enable: jest.fn(), disable: jest.fn() },
+};
+
 jest.mock("react-leaflet", () => ({
   MapContainer: ({ children }) => <div data-testid="map-root">{children}</div>,
   TileLayer: () => null,
   Marker: ({ eventHandlers, children }) => (
     <button type="button" onClick={() => eventHandlers?.click?.()}>{children || "marker"}</button>
   ),
-  useMap: () => ({
-    setView: jest.fn(),
-    getZoom: () => 12,
-    on: jest.fn(),
-    off: jest.fn(),
-  }),
+  useMap: () => mockMap,
 }));
+
+// Fond de carte vectoriel (WebGL) : absent de jsdom
+jest.mock("../components/BaseMapLayers", () => () => null);
 
 beforeEach(() => {
   mockApi.mockReset();
@@ -71,8 +88,8 @@ test("ouvre un panneau latéral quand on clique sur un projet sur la carte", asy
     </MemoryRouter>
   );
 
-  await waitFor(() => expect(mockApi).toHaveBeenCalledWith("/projects"));
-  const markers = screen.getAllByRole("button", { name: /marker/i });
+  await waitFor(() => expect(mockApi).toHaveBeenCalledWith("/projects?status=open"));
+  const markers = await screen.findAllByRole("button", { name: /marker/i });
   await userEvent.click(markers[0]);
 
   expect(await screen.findByText("Club de foot")).toBeInTheDocument();
@@ -87,8 +104,8 @@ test("ferme le panneau projet quand on clique sur fermer", async () => {
     </MemoryRouter>
   );
 
-  await waitFor(() => expect(mockApi).toHaveBeenCalledWith("/projects"));
-  const markers = screen.getAllByRole("button", { name: /marker/i });
+  await waitFor(() => expect(mockApi).toHaveBeenCalledWith("/projects?status=open"));
+  const markers = await screen.findAllByRole("button", { name: /marker/i });
   await userEvent.click(markers[0]);
 
   expect(await screen.findByText("Club de foot")).toBeInTheDocument();

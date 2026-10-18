@@ -284,8 +284,14 @@ function MapView({ initialView = null }) {
 
   // Le scroll sur la carte zoome au lieu de faire défiler la page : ce bouton
   // permet de revenir en haut sans avoir à quitter la carte au clavier/trackpad.
+  // Affiché seulement quand la carte occupe l'écran : ailleurs il recouvrait le texte de la page.
+  const shellRef = useRef(null);
   useEffect(() => {
-    const onScroll = () => setShowScrollTop(window.scrollY > 200);
+    const onScroll = () => {
+      const rect = shellRef.current?.getBoundingClientRect();
+      const mapInView = !!rect && rect.top < window.innerHeight * 0.35 && rect.bottom > window.innerHeight * 0.6;
+      setShowScrollTop(window.scrollY > 200 && mapInView);
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -355,6 +361,7 @@ function MapView({ initialView = null }) {
 
   return (
     <section
+      ref={shellRef}
       className={`${classes.mapShell} ${fullscreen ? classes.fullscreen : ''}`}
       aria-labelledby="map-title"
     >

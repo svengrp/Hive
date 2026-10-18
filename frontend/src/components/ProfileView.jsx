@@ -12,6 +12,7 @@ import classes from "./ProfileView.module.css";
 import ProjectCard from "./ProjectCard";
 import InterestPicker from "./InterestPicker";
 import { cleanInterests } from "../lib/interests";
+import { prepareAvatar, AVATAR_ACCEPT } from "../lib/avatar";
 
 function getDisplayName(user) {
   return user.displayName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
@@ -104,9 +105,11 @@ export default function Profile() {
       const data = await api("/auth/me");
       const currentUser = data.user;
       const myProject = await api("/projects/mine");
-      api('/messages/blocked').then(setBlockedUsers).catch(() => {});
-      api('/user/ratings').then(setReceivedRatings).catch(() => {});
-      setMyProject(myProject);
+      // Listes annexes : une réponse inattendue ne doit jamais casser la page
+      const asList = (value) => (Array.isArray(value) ? value : []);
+      api('/messages/blocked').then((list) => setBlockedUsers(asList(list))).catch(() => {});
+      api('/user/ratings').then((list) => setReceivedRatings(asList(list))).catch(() => {});
+      setMyProject(Array.isArray(myProject) ? myProject : []);
       setProfile(currentUser);
       setForm({
         firstName: currentUser.firstName || "",
@@ -139,17 +142,17 @@ export default function Profile() {
     setPasswordForm((current) => ({ ...current, [e.target.name]: e.target.value }));
   };
 
+  // Photo réduite et recadrée dans le navigateur avant l'envoi (une photo de téléphone pèse plusieurs Mo)
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setForm((current) => ({ ...current, avatarUrl: reader.result }));
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrl = await prepareAvatar(file);
+      setForm((current) => ({ ...current, avatarUrl: dataUrl }));
+    } catch {
+      setMessage({ type: "error", text: t("profile.photoError") });
+    }
   };
 
   const addItem = (field, value, resetFn) => {
@@ -199,6 +202,7 @@ export default function Profile() {
         }),
       });
 
+      let passwordChanged = false;
       if (passwordForm.newPassword || passwordForm.confirmPassword || passwordForm.currentPassword) {
         if (!passwordForm.currentPassword) {
           throw new Error(t("profile.currentPasswordRequired"));
@@ -207,13 +211,16 @@ export default function Profile() {
           throw new Error(t("profile.passwordMismatch"));
         }
 
-        await api("/user/password", {
+        const changed = await api("/user/password", {
           method: "PUT",
           body: JSON.stringify({
             currentPassword: passwordForm.currentPassword,
             newPassword: passwordForm.newPassword,
           }),
         });
+        // Les autres sessions sont fermées par le serveur ; celle-ci reçoit un nouveau jeton
+        if (changed?.token) localStorage.setItem("token", changed.token);
+        passwordChanged = true;
       }
 
       const mergedProfile = { ...updatedProfile, email: updatedProfile.email || profile.email };
@@ -224,7 +231,9 @@ export default function Profile() {
         localStorage.setItem("user", JSON.stringify(mergedProfile));
       }
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setMessage({ type: "success", text: t("profile.saveSuccess") });
+      // La photo envoyée est maintenant servie par l'API : le formulaire ne garde plus la data URL
+      setForm((current) => ({ ...current, avatarUrl: updatedProfile.avatarUrl || "" }));
+      setMessage({ type: "success", text: t(passwordChanged ? "profile.passwordChangedRelogin" : "profile.saveSuccess") });
     } catch (err) {
       setMessage({ type: "error", text: err.message });
     }
@@ -373,7 +382,7 @@ export default function Profile() {
                     <input
                       id="avatar-upload"
                       type="file"
-                      accept="image/*"
+                      accept={AVATAR_ACCEPT}
                       className={classes.hiddenInput}
                       onChange={handleAvatarUpload}
                     />
@@ -386,9 +395,9 @@ export default function Profile() {
                           id="avatar-url"
                           className={classes.input}
                           name="avatarUrl"
-                          value={form.avatarUrl}
+                          value={form.avatarUrl.startsWith("data:") ? "" : form.avatarUrl}
                           onChange={handleChange}
-                          placeholder="https://..."
+                          placeholder={form.avatarUrl.startsWith("data:") ? t("profile.photoImported") : "https://..."}
                         />
                       </div>
                     </div>

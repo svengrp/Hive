@@ -64,7 +64,12 @@
     "loading": "Signing in…",
     "submit": "Sign in",
     "noAccount": "No account?",
-    "createAccount": "Create an account"
+    "createAccount": "Create an account",
+    "verifyTitle": "Confirm your email address",
+    "verifyIntro": "Your address hasn’t been confirmed yet. We just sent a code to",
+    "verifySubmit": "Confirm and sign in",
+    "verifyLoading": "Checking…",
+    "verifyBack": "Use another address"
   },
   "register": {
     "titleRegister": "Register",
@@ -181,7 +186,10 @@
     "notifSaveError": "The setting couldn't be saved.",
     "interests": "Interests",
     "interestsHint": "Up to 3 topics, shown on your public profile.",
-    "noInterests": "No interests selected."
+    "noInterests": "No interests selected.",
+    "passwordChangedRelogin": "Password changed. Your other devices have been signed out.",
+    "photoImported": "Photo imported from your device",
+    "photoError": "This image can’t be used. Pick a JPEG, PNG or WebP photo."
   },
   "projects": {
     "title": "Discover projects",
@@ -472,7 +480,12 @@
     "pinnedTag": "Pinned",
     "quoteDeleted": "Message deleted",
     "jumpToMessage": "Go to {{name}}'s message",
-    "workspace": "Project space"
+    "workspace": "Project space",
+    "sendErrorBlocked": "You blocked this person: unblock them to write to them.",
+    "sendErrorUndelivered": "This message could not be delivered.",
+    "sendErrorGone": "This account no longer exists.",
+    "sendErrorTooLong": "Message too long (2000 characters max).",
+    "sendErrorRate": "You are sending a lot of messages: wait a few seconds."
   },
   "header": {
     "notifications": "Notifications",
@@ -687,7 +700,8 @@
     "statsRequests": "Requests",
     "statsViews7": "{{count}} this week",
     "statsLocked": "See who's interested in your project: views, visitors and requests, with Hive+.",
-    "plusBadge": "Hive+"
+    "plusBadge": "Hive+",
+    "boostClosed": "Only open projects can be featured."
   },
   "seo": {
     "projectsTitle": "Projects to join",
@@ -825,5 +839,9 @@
       "editInterests": "Edit my interests"
     },
     "previous": "Previous step"
+  },
+  "otp": {
+    "label": "6-digit code",
+    "digit": "Digit {{n}} of 6"
   }
 }

@@ -84,14 +84,15 @@ test("TF-28 — affiche un badge numérique si des messages directs non lus exis
 });
 
 // TF-31 — Bouton toggle thème
-test("TF-31 — le bouton de changement de thème est présent", () => {
+test("TF-31 — l'interrupteur de thème est présent", () => {
   render(
     <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Header />
     </MemoryRouter>
   );
 
-  expect(screen.getByRole("button", { name: /toggle theme/i })).toBeInTheDocument();
+  // Interrupteur « Mode sombre » (case à cocher au rôle switch)
+  expect(screen.getAllByRole("switch", { name: /mode sombre|dark mode|nav\.darkMode/i }).length).toBeGreaterThan(0);
 });
 
 // TF-32 — Bouton langue

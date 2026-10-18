@@ -540,11 +540,16 @@
   z-index: 1200;
   flex-direction: column;
   transform: translateX(-100%);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Fermé : hors de l'écran ET hors du parcours clavier / lecteur d'écran
+     (visibility est rétablie dès l'ouverture, retirée après l'animation de fermeture) */
+  visibility: hidden;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.28s;
 }
 
 .drawerOpen {
   transform: translateX(0);
+  visibility: visible;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
 }
 
 .drawerHead {

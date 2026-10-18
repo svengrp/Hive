@@ -64,7 +64,12 @@
     "loading": "Connexion…",
     "submit": "Se connecter",
     "noAccount": "Pas de compte ?",
-    "createAccount": "Créer un compte"
+    "createAccount": "Créer un compte",
+    "verifyTitle": "Confirme ton adresse email",
+    "verifyIntro": "Ton adresse n’a pas encore été confirmée. Nous venons d’envoyer un code à",
+    "verifySubmit": "Confirmer et me connecter",
+    "verifyLoading": "Vérification…",
+    "verifyBack": "Utiliser une autre adresse"
   },
   "register": {
     "titleRegister": "Inscription",
@@ -181,7 +186,10 @@
     "notifSaveError": "Le réglage n'a pas pu être enregistré.",
     "interests": "Centres d'intérêt",
     "interestsHint": "Jusqu'à 3 sujets, affichés sur ton profil public.",
-    "noInterests": "Aucun centre d'intérêt choisi."
+    "noInterests": "Aucun centre d'intérêt choisi.",
+    "passwordChangedRelogin": "Mot de passe modifié. Tes autres appareils ont été déconnectés.",
+    "photoImported": "Photo importée depuis ton appareil",
+    "photoError": "Cette image ne peut pas être utilisée. Choisis une photo JPEG, PNG ou WebP."
   },
   "projects": {
     "title": "Découvrez les projets",
@@ -472,7 +480,12 @@
     "pinnedTag": "Épinglé",
     "quoteDeleted": "Message supprimé",
     "jumpToMessage": "Voir le message de {{name}}",
-    "workspace": "Espace projet"
+    "workspace": "Espace projet",
+    "sendErrorBlocked": "Tu as bloqué cette personne : débloque-la pour lui écrire.",
+    "sendErrorUndelivered": "Ce message n’a pas pu être distribué.",
+    "sendErrorGone": "Ce compte n’existe plus.",
+    "sendErrorTooLong": "Message trop long (2000 caractères au maximum).",
+    "sendErrorRate": "Tu envoies beaucoup de messages : patiente quelques secondes."
   },
   "header": {
     "notifications": "Notifications",
@@ -687,7 +700,8 @@
     "statsRequests": "Demandes",
     "statsViews7": "{{count}} cette semaine",
     "statsLocked": "Vois qui s'intéresse à ton projet : vues, visiteurs et demandes, avec Hive+.",
-    "plusBadge": "Hive+"
+    "plusBadge": "Hive+",
+    "boostClosed": "Seuls les projets ouverts peuvent être mis en avant."
   },
   "seo": {
     "projectsTitle": "Projets à rejoindre",
@@ -825,5 +839,9 @@
       "editInterests": "Modifier mes centres d'intérêt"
     },
     "previous": "Étape précédente"
+  },
+  "otp": {
+    "label": "Code à 6 chiffres",
+    "digit": "Chiffre {{n}} sur 6"
   }
 }

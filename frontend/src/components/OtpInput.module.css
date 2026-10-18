@@ -1,0 +1,48 @@
+/* Cases du code à 6 chiffres (inscription, connexion, mot de passe oublié) */
+.wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.input {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+
+.input:hover {
+  border-color: var(--accent);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2);
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    gap: 6px;
+  }
+
+  .input {
+    width: min(44px, calc((100vw - 80px) / 6));
+    height: 48px;
+    font-size: 20px;
+  }
+}

@@ -1195,6 +1195,11 @@
     grid-template-columns: 1fr 1fr;
   }
 
+  /* Nombre impair de cartes : la dernière prend toute la largeur (pas de trou à droite) */
+  .summaryGrid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
   .ownerAvatar,
   .ownerAvatarImage,
   .ownerAvatarFallback {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { avatarSrc } from "../lib/avatar";
 
 /* Affiche la photo de profil si disponible, sinon les initiales de l'utilisateur en fallback.
    Le state imageFailed se réinitialise à chaque changement d'URL pour forcer un re-essai. */
@@ -17,7 +18,7 @@ export default function UserAvatar({
   style,
 }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const avatarUrl = user?.avatarUrl?.trim();
+  const avatarUrl = avatarSrc(user);
 
   useEffect(() => {
     setImageFailed(false);

@@ -3,9 +3,10 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import classes from "./LoginForm.module.css";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, MailCheck } from "lucide-react";
 import FloatingField from "./FloatingField";
 import SocialLogin from "./SocialLogin";
+import OtpInput from "./OtpInput";
 
 const OAUTH_ERRORS = ["cancelled", "expired", "email", "unavailable", "server"];
 
@@ -15,8 +16,12 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading]     = useState(false);
+  // Compte dont l'adresse n'a jamais été confirmée : saisie du code reçu, puis connexion
+  const [verifying, setVerifying] = useState(false);
+  const [code, setCode]           = useState("");
+  const [info, setInfo]           = useState("");
 
-  const { login }  = useAuth();
+  const { login, verifyEmail, resendVerificationEmail }  = useAuth();
   const navigate   = useNavigate();
   const { t }      = useTranslation();
   // Erreur renvoyée par le retour Google/GitHub (?oauthError=…)
@@ -39,11 +44,78 @@ export default function LoginForm() {
       localStorage.setItem("hive-last-email", email.trim().toLowerCase());
       navigate("/profile");
     } catch (err) {
-      setError(err.message || t("login.invalidCredentials"));
+      if (err.code === "email_not_verified") {
+        setVerifying(true);
+        setCode("");
+        resendVerificationEmail(email.trim().toLowerCase()).catch(() => {});
+      } else {
+        setError(err.message || t("login.invalidCredentials"));
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const onVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setInfo("");
+    if (code.length !== 6) {
+      setError(t("register.verifyCodeRequired"));
+      return;
+    }
+    setLoading(true);
+    try {
+      await verifyEmail(email.trim().toLowerCase(), code);
+      await login({ email, password, rememberMe });
+      localStorage.setItem("hive-last-email", email.trim().toLowerCase());
+      navigate("/profile");
+    } catch (err) {
+      setError(err.message || t("register.verifyError"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onResend = async () => {
+    setError("");
+    try {
+      const res = await resendVerificationEmail(email.trim().toLowerCase());
+      setInfo(res?.message || t("register.resendBtn"));
+    } catch (err) {
+      setError(err.message || t("register.resendError"));
+    }
+  };
+
+  if (verifying) {
+    return (
+      <div className={classes.loginWrapper}>
+        <div className={classes.loginCard}>
+          <h2>{t("login.verifyTitle")}</h2>
+          <form onSubmit={onVerify} noValidate className={classes.form}>
+            <div className={classes.verifyIntro}>
+              <MailCheck size={20} aria-hidden="true" />
+              <p>{t("login.verifyIntro")} <strong>{email.trim().toLowerCase()}</strong>.</p>
+            </div>
+            <OtpInput value={code} onChange={setCode} autoFocus idPrefix="login-otp" />
+            {error && <p className={classes.error} role="alert">{error}</p>}
+            {info && <p className={classes.info} role="status">{info}</p>}
+            <button type="submit" className={classes.loginBtn} disabled={loading}>
+              {loading ? t("login.verifyLoading") : t("login.verifySubmit")}
+            </button>
+            <button type="button" className={classes.secondaryBtn} onClick={onResend}>
+              {t("register.resendBtn")}
+            </button>
+          </form>
+          <p className={classes.registerText}>
+            <button type="button" className={classes.linkBtn} onClick={() => { setVerifying(false); setError(""); setInfo(""); }}>
+              {t("login.verifyBack")}
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={classes.loginWrapper}>

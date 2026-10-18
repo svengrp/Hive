@@ -101,6 +101,11 @@ export function sendErrorKey(serverMessage) {
   const text = normalize(serverMessage);
   if (text.includes("inappropri")) return "messages.sendErrorContent";
   if (text.includes("cloture")) return "messages.sendErrorClosed";
+  if (text.includes("tu as bloque")) return "messages.sendErrorBlocked";
+  if (text.includes("pas pu etre distribue")) return "messages.sendErrorUndelivered";
+  if (text.includes("n'existe plus") || text.includes("n’existe plus")) return "messages.sendErrorGone";
+  if (text.includes("trop long")) return "messages.sendErrorTooLong";
+  if (text.includes("patiente")) return "messages.sendErrorRate";
   return "messages.sendErrorGeneric";
 }
 
