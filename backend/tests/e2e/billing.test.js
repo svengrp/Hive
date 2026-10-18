@@ -135,9 +135,16 @@ test('paiements Hive+ et Boost', { skip }, async (t) => {
   await t.test('résiliation : retour au plan gratuit', async () => {
     await sendEvent(server, 'customer.subscription.updated', subscription(lea, 'active', { cancel_at_period_end: true }));
     assert.strictEqual((await lea.api.get('/billing/me')).body.planCancelAtPeriodEnd, true);
+    await server.db.collection('users').updateOne({ email: lea.email }, { $set: { boostCredits: 2 } });
     await sendEvent(server, 'customer.subscription.deleted', subscription(lea, 'canceled'));
     const me = (await lea.api.get('/billing/me')).body;
     assert.strictEqual(me.plan, 'free');
+    assert.strictEqual(me.boostCredits, 0, 'boosts inclus conservés après la fin de l\'abonnement');
+    // Réabonnement : seulement les boosts du nouveau mois, pas les anciens en plus
+    await sendEvent(server, 'customer.subscription.created', subscription(lea));
+    await sendEvent(server, 'invoice.paid', { object: 'invoice', customer: `cus_${lea.id}`, subscription: `sub_${lea.id}` });
+    assert.strictEqual((await lea.api.get('/billing/me')).body.boostCredits, 2, 'réabonnement : crédits cumulés');
+    await sendEvent(server, 'customer.subscription.deleted', subscription(lea, 'canceled'));
     assert.deepStrictEqual((await lea.api.get(`/projects/${leaProject._id}/stats`)).body, { locked: true });
   });
 

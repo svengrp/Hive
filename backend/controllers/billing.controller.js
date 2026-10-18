@@ -210,6 +210,9 @@ async function syncSubscription(sub) {
       planCancelAtPeriodEnd: !!sub.cancel_at_period_end,
       stripeSubscriptionId: sub.id,
       stripeCustomerId: sub.customer,
+      // Les boosts inclus sont liés à l'abonnement : ils disparaissent quand il se termine
+      // (sinon un réabonnement ajouterait de nouveaux crédits aux anciens)
+      ...(active ? {} : { boostCredits: 0 }),
     },
   });
 }
