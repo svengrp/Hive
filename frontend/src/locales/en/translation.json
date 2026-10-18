@@ -701,7 +701,27 @@
     "statsViews7": "{{count}} this week",
     "statsLocked": "See who's interested in your project: views, visitors and requests, with Hive+.",
     "plusBadge": "Hive+",
-    "boostClosed": "Only open projects can be featured."
+    "boostClosed": "Only open projects can be featured.",
+    "thanksPlusLabel": "Hive+",
+    "thanksPlusTitle": "Welcome to Hive+",
+    "thanksPlusText": "Thanks for your support! Your subscription is active and this month’s boosts are waiting on your projects page.",
+    "thanksPlusCta": "See my projects",
+    "thanksBoostLabel": "Boost",
+    "thanksBoostTitle": "Your project is featured",
+    "thanksBoostText": "It shows at the top of “Featured” until {{date}}. Thank you!",
+    "thanksBoostCta": "See featured projects",
+    "thanksPendingTitle": "Payment received",
+    "thanksPendingText": "A few more seconds while we activate everything…",
+    "thanksSlowText": "Activation is taking a little longer than expected. It will show up within a few minutes — you can close this window.",
+    "thanksClose": "Close",
+    "plusBadgeTitle": "Hive+ member",
+    "stripHint": "Use them from one of your project pages",
+    "freeMissing": [
+      "{{count}} boosts per month included",
+      "Project statistics",
+      "Hive+ badge"
+    ],
+    "notIncluded": "Not included"
   },
   "seo": {
     "projectsTitle": "Projects to join",

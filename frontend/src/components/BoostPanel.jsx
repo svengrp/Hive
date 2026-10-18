@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Lock, Rocket } from "lucide-react";
 import { api } from "../lib/api";
 import { fetchMyBilling, fetchPlans, formatPrice, isBoosted, startCheckout } from "../lib/billing";
+import ThankYouCelebration from "./ThankYouCelebration";
 import classes from "./BoostPanel.module.css";
 
 /* Page projet (propriétaire) : mise en avant du projet et statistiques Hive+ */
@@ -15,6 +16,13 @@ export default function BoostPanel({ project, onBoosted }) {
   const [stats, setStats] = useState(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type: "ok" | "error", text }
+  // Remerciement : null, ou { pending, slow } après un boost payé ou un boost inclus utilisé
+  const [thanks, setThanks] = useState(null);
+  const navigate = useNavigate();
+  const closeThanks = useCallback(() => {
+    setThanks(null);
+    if (searchParams.get("boost")) navigate(`/projects/${project._id}`, { replace: true });
+  }, [navigate, searchParams, project._id]);
   const projectId = project._id;
   const lang = i18n.language;
 
@@ -27,15 +35,17 @@ export default function BoostPanel({ project, onBoosted }) {
   // Retour de Stripe après un boost payé : on attend que le webhook l'active
   useEffect(() => {
     if (searchParams.get("boost") !== "success") return undefined;
-    setFeedback({ type: "ok", text: t("billing.boostPending") });
+    setThanks({ pending: true });
     let tries = 0;
     let timer;
     const poll = () => api(`/projects/${projectId}`).then((p) => {
       if (isBoosted(p)) {
         onBoosted(p.boostedUntil);
-        setFeedback({ type: "ok", text: t("billing.boostSuccess") });
+        setThanks({ pending: false });
       } else if (tries++ < 10) {
         timer = setTimeout(poll, 2000);
+      } else {
+        setThanks({ pending: false, slow: true });
       }
     }).catch(() => {});
     poll();
@@ -57,7 +67,7 @@ export default function BoostPanel({ project, onBoosted }) {
       const data = await api(`/billing/boost/${projectId}`, { method: "POST" });
       onBoosted(data.boostedUntil);
       setBilling((b) => ({ ...b, boostCredits: data.boostCredits }));
-      setFeedback({ type: "ok", text: t("billing.boostSuccess") });
+      setThanks({ pending: false });
     } catch {
       setFeedback({ type: "error", text: t("billing.error") });
     } finally {
@@ -97,6 +107,18 @@ export default function BoostPanel({ project, onBoosted }) {
 
   return (
     <section className={classes.card} aria-labelledby="boost-card-title">
+      <ThankYouCelebration
+        open={!!thanks}
+        pending={!!thanks?.pending}
+        variant="boost"
+        label={thanks && !thanks.pending && !thanks.slow ? t("billing.thanksBoostLabel") : undefined}
+        title={thanks?.pending || thanks?.slow ? t("billing.thanksPendingTitle") : t("billing.thanksBoostTitle")}
+        message={thanks?.slow
+          ? t("billing.thanksSlowText")
+          : thanks?.pending ? t("billing.thanksPendingText") : t("billing.thanksBoostText", { date: until })}
+        primary={thanks?.slow ? undefined : { label: t("billing.thanksBoostCta"), to: "/projects" }}
+        onClose={closeThanks}
+      />
       <h2 id="boost-card-title" className={classes.title}>{t("billing.boostCardTitle")}</h2>
       {boosted ? (
         <p className={classes.status}>

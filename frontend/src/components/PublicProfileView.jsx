@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
 import HiveRating from "./HiveRating";
+import PlusBadge from "./PlusBadge";
 import ProjectCard from "./ProjectCard";
 import { cleanInterests } from "../lib/interests";
 import { useSeo } from "../lib/seo";
@@ -92,7 +93,10 @@ export default function PublicProfileView() {
         />
 
         <div className={classes.heroInfo}>
-          <h1>{displayName}</h1>
+          <h1 className={classes.nameRow}>
+            {displayName}
+            {profile.plan === "plus" && <PlusBadge size="md" />}
+          </h1>
           {profile.bio && <p>{profile.bio}</p>}
           {cleanInterests(profile.interests).length > 0 && (
             <ul className={classes.interestList} aria-label={t("profile.interests")}>

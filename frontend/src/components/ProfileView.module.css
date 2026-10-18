@@ -60,6 +60,83 @@
   font-weight: 600;
 }
 
+/* Nom + badge Hive+ dans l'en-tête */
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Bandeau Hive+ : boosts restants, renouvellement, gestion de l'abonnement */
+.plusStrip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(var(--gold-rgb), 0.45);
+  border-radius: var(--radius-lg);
+  background: var(--gold-soft);
+}
+
+.plusStripIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--gold-badge-bg);
+  border: 1px solid rgba(var(--gold-rgb), 0.4);
+  color: var(--gold-ink);
+}
+
+.plusStripText {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.plusStripText strong {
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.plusStripText span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.plusStripBtn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plusStripBtn:hover {
+  border-color: var(--gold);
+}
+
+@media (max-width: 600px) {
+  .plusStrip {
+    flex-wrap: wrap;
+  }
+
+  .plusStripBtn {
+    width: 100%;
+  }
+}
+
 .profileEmail {
   margin-top: 4px;
   color: var(--text-muted);

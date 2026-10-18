@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Check, CircleAlert, Clock, Rocket } from "lucide-react";
+import { Check, CircleAlert, Clock, Rocket, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { fetchMyBilling, fetchPlans, formatPrice, openPortal, startCheckout } from "../lib/billing";
 import { useSeo } from "../lib/seo";
+import ThankYouCelebration from "../components/ThankYouCelebration";
 import classes from "./Abonnement.module.css";
 
 /* Marque Hive (trois alvéoles) pour signer l'offre Hive+ */
@@ -58,6 +59,14 @@ export default function Abonnement() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [offerOver, setOfferOver] = useState(false);
+  // Retour de Stripe après un abonnement : remerciement, en attente de la confirmation du webhook
+  const [thanksOpen, setThanksOpen] = useState(status === "success");
+  const [activationSlow, setActivationSlow] = useState(false);
+  const navigate = useNavigate();
+  const closeThanks = useCallback(() => {
+    setThanksOpen(false);
+    navigate("/abonnement", { replace: true });
+  }, [navigate]);
   const lang = i18n.language;
 
   useEffect(() => {
@@ -72,7 +81,10 @@ export default function Abonnement() {
     const load = () => fetchMyBilling()
       .then((data) => {
         setMe(data);
-        if (status === "success" && data.plan !== "plus" && tries++ < 10) timer = setTimeout(load, 2000);
+        if (status === "success" && data.plan !== "plus") {
+          if (tries++ < 10) timer = setTimeout(load, 2000);
+          else setActivationSlow(true);
+        }
       })
       .catch(() => {});
     load();
@@ -106,6 +118,8 @@ export default function Abonnement() {
   };
 
   const freeFeatures = t("billing.freeFeatures", { returnObjects: true });
+  // Avantages Hive+ absents de l'offre gratuite : affichés barrés (seulement ce qui existe vraiment)
+  const freeMissing = t("billing.freeMissing", { returnObjects: true, count: plans?.boostsPerMonth ?? 2 });
   const plusFeatures = t("billing.plusFeatures", {
     returnObjects: true,
     count: plans?.boostsPerMonth ?? 2,
@@ -136,15 +150,16 @@ export default function Abonnement() {
         <p className={classes.lead}>{t("billing.pageLead")}</p>
       </header>
 
-      {status === "success" && (
-        <div className={classes.notice} role="status">
-          <Check size={18} aria-hidden="true" />
-          <div>
-            <strong>{t("billing.successTitle")}</strong>
-            <p>{isPlus ? t("billing.successDone") : t("billing.successPending")}</p>
-          </div>
-        </div>
-      )}
+      <ThankYouCelebration
+        open={thanksOpen}
+        pending={!isPlus && !activationSlow}
+        variant="plus"
+        label={isPlus ? t("billing.thanksPlusLabel") : undefined}
+        title={isPlus ? t("billing.thanksPlusTitle") : t("billing.thanksPendingTitle")}
+        message={isPlus ? t("billing.thanksPlusText") : activationSlow ? t("billing.thanksSlowText") : t("billing.thanksPendingText")}
+        primary={{ label: t("billing.thanksPlusCta"), to: "/profile" }}
+        onClose={closeThanks}
+      />
       {status === "cancel" && (
         <div className={`${classes.notice} ${classes.noticeMuted}`} role="status">
           <p>{t("billing.cancelNote")}</p>
@@ -188,6 +203,12 @@ export default function Abonnement() {
           <ul className={classes.features}>
             {freeFeatures.map((f) => (
               <li key={f}><Check size={16} aria-hidden="true" className={classes.check} />{f}</li>
+            ))}
+            {Array.isArray(freeMissing) && freeMissing.map((f) => (
+              <li key={f} className={classes.missing}>
+                <X size={16} aria-hidden="true" className={classes.cross} />
+                <span><span className={classes.srOnly}>{t("billing.notIncluded")} : </span><s>{f}</s></span>
+              </li>
             ))}
           </ul>
           {user && !isPlus && <p className={classes.current}>{t("billing.currentPlan")}</p>}

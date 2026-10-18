@@ -701,7 +701,27 @@
     "statsViews7": "{{count}} cette semaine",
     "statsLocked": "Vois qui s'intéresse à ton projet : vues, visiteurs et demandes, avec Hive+.",
     "plusBadge": "Hive+",
-    "boostClosed": "Seuls les projets ouverts peuvent être mis en avant."
+    "boostClosed": "Seuls les projets ouverts peuvent être mis en avant.",
+    "thanksPlusLabel": "Hive+",
+    "thanksPlusTitle": "Bienvenue dans Hive+",
+    "thanksPlusText": "Merci pour ton soutien ! Ton abonnement est actif et tes boosts du mois t’attendent sur la page de tes projets.",
+    "thanksPlusCta": "Voir mes projets",
+    "thanksBoostLabel": "Boost",
+    "thanksBoostTitle": "Ton projet est mis en avant",
+    "thanksBoostText": "Il apparaît en tête de « Mis en avant » jusqu’au {{date}}. Merci !",
+    "thanksBoostCta": "Voir les projets mis en avant",
+    "thanksPendingTitle": "Paiement reçu",
+    "thanksPendingText": "Encore quelques secondes, on active tout ça…",
+    "thanksSlowText": "L’activation prend un peu plus de temps que prévu. Elle apparaîtra d’ici quelques minutes : tu peux fermer cette fenêtre.",
+    "thanksClose": "Fermer",
+    "plusBadgeTitle": "Membre Hive+",
+    "stripHint": "À utiliser depuis la page d’un de tes projets",
+    "freeMissing": [
+      "{{count}} boosts par mois inclus",
+      "Statistiques de tes projets",
+      "Badge Hive+"
+    ],
+    "notIncluded": "Non inclus"
   },
   "seo": {
     "projectsTitle": "Projets à rejoindre",

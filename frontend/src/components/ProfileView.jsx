@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Rocket, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
@@ -13,6 +13,8 @@ import ProjectCard from "./ProjectCard";
 import InterestPicker from "./InterestPicker";
 import { cleanInterests } from "../lib/interests";
 import { prepareAvatar, AVATAR_ACCEPT } from "../lib/avatar";
+import { fetchMyBilling, openPortal } from "../lib/billing";
+import PlusBadge from "./PlusBadge";
 
 function getDisplayName(user) {
   return user.displayName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
@@ -23,9 +25,15 @@ function getDisplayName(user) {
 export default function Profile() {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [profile, setProfile] = useState(null);
+  // Membre Hive+ : boosts restants et renouvellement, affichés en haut du profil
+  const [plus, setPlus] = useState(null);
+  useEffect(() => {
+    if (profile?.plan !== "plus") return;
+    fetchMyBilling().then((b) => setPlus(b?.plan === "plus" ? b : null)).catch(() => setPlus(null));
+  }, [profile?.plan]);
   const [loading, setLoading] = useState(true);
   const [myProject, setMyProject] = useState([]);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -256,7 +264,10 @@ export default function Profile() {
           </div>
 
           <div className={classes.profileInfo}>
-            <h1>{getDisplayName(profile)}</h1>
+            <h1 className={classes.titleRow}>
+              {getDisplayName(profile)}
+              {profile.plan === "plus" && <PlusBadge size="md" />}
+            </h1>
             <div className={classes.profileEmail}>{profile.email}</div>
             {profile.bio && <div className={classes.profileBio}>{profile.bio}</div>}
             {profile.interests?.length > 0 && (
@@ -273,6 +284,28 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {plus && (
+        <div className={classes.profileContainer}>
+          <div className={classes.plusStrip}>
+            <span className={classes.plusStripIcon} aria-hidden="true"><Rocket size={18} /></span>
+            <div className={classes.plusStripText}>
+              <strong>{t("billing.credits", { count: plus.boostCredits || 0 })}</strong>
+              <span>
+                {t("billing.stripHint")}
+                {plus.planRenewsAt && (
+                  <> · {t(plus.planCancelAtPeriodEnd ? "billing.endsOn" : "billing.renewsOn", {
+                    date: new Intl.DateTimeFormat(i18n.language === "en" ? "en-CH" : "fr-CH", { dateStyle: "long" }).format(new Date(plus.planRenewsAt)),
+                  })}</>
+                )}
+              </span>
+            </div>
+            <button type="button" className={classes.plusStripBtn} onClick={() => openPortal().catch(() => {})}>
+              {t("billing.manage")}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={classes.profileContainer}>
         <h2 className={classes.sectionTitle}>{t("profile.myProjects")}</h2>

@@ -277,6 +277,32 @@
   color: var(--accent);
 }
 
+/* Offre gratuite : avantages Hive+ non inclus, grisés et barrés */
+.missing {
+  color: var(--text-muted);
+}
+
+.missing s {
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 65%, transparent);
+}
+
+.cross {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .cta {
   display: flex;
   flex-direction: column;

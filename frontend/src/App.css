@@ -37,6 +37,12 @@
   --person-3: #4fc1b4;
   --person-4: #e48a73;
   --person-5: #d6b25e;
+  /* Doré « premium » (projets mis en avant, remerciements Hive+) : champagne, jamais orange */
+  --gold: #d6b25e;
+  --gold-rgb: 214, 178, 94;
+  --gold-ink: #e6c77d;
+  --gold-soft: rgba(214, 178, 94, 0.12);
+  --gold-badge-bg: #2a2416;
   /* Échelles partagées (rayons, espacements, mouvement) */
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -99,6 +105,11 @@ body.light {
   --person-3: #13796f;
   --person-4: #a5452e;
   --person-5: #85620f;
+  --gold: #b8913a;
+  --gold-rgb: 184, 145, 58;
+  --gold-ink: #7a5a12;
+  --gold-soft: #faf4e4;
+  --gold-badge-bg: #fbf3dc;
   --danger-text: var(--danger);
   --shadow-rgb: 16, 24, 40;
   --shadow-k: 0.45;

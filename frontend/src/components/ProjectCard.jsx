@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { Users, MapPin } from "lucide-react";
+import { Users, MapPin, Star } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getProjectAccent } from "../lib/projectCover";
 import ProjectCover from "./ProjectCover";
 import { isBoosted } from "../lib/billing";
+import PlusBadge from "./PlusBadge";
 import classes from "./ProjectCard.module.css";
 import { useTranslation } from "react-i18next";
 
@@ -43,11 +44,12 @@ function ProjectCard({ project, index = 0 }) {
   })();
 
   const accent = getProjectAccent(project);
+  const boosted = isBoosted(project);
 
   return (
     <Link
       to={`/projects/${project._id}`}
-      className={classes.projectCard}
+      className={`${classes.projectCard} ${boosted ? classes.projectCardBoosted : ""}`}
       style={{
         "--card-accent": accent.text,
         "--card-accent-bg": accent.bg,
@@ -56,7 +58,12 @@ function ProjectCard({ project, index = 0 }) {
       }}
     >
       <ProjectCover project={project} size="thumb" className={classes.cover} />
-      {isBoosted(project) && <span className={classes.boostedBadge}>{t("billing.boosted")}</span>}
+      {boosted && (
+        <span className={classes.boostedBadge}>
+          <Star size={12} strokeWidth={2.4} aria-hidden="true" />
+          {t("billing.boosted")}
+        </span>
+      )}
 
       <div className={classes.body}>
       {/* HEADER */}
@@ -69,8 +76,9 @@ function ProjectCard({ project, index = 0 }) {
         )}
         <h3 className={classes.projectTitle}>{project.title}</h3>
         {ownerLabel && (
-          <p className={classes.projectDescription}>
+          <p className={`${classes.projectDescription} ${classes.ownerLine}`}>
             {t("card.by", { name: ownerLabel })}
+            {project.ownerId?.plan === "plus" && <PlusBadge />}
           </p>
         )}
         <p className={classes.projectDescription}>

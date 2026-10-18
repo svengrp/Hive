@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, X, Plus, ChevronDown } from "lucide-react";
+import { Search, X, Plus, ChevronDown, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
@@ -345,7 +345,10 @@ export default function Projects() {
         {/* MIS EN AVANT (boosts) */}
         {boosted.length > 0 && !hasActiveFilters && (
           <div className={classes.recommendedSection}>
-            <h2 className={classes.recommendedTitle}>{t("billing.boostedSection")}</h2>
+            <h2 className={`${classes.recommendedTitle} ${classes.boostedTitle}`}>
+              <Star size={16} strokeWidth={2.4} aria-hidden="true" />
+              {t("billing.boostedSection")}
+            </h2>
             <p className={classes.sectionHint}>{t("billing.boostedHint")}</p>
             <div className={classes.grid}>
               {boosted.map((project, index) => (

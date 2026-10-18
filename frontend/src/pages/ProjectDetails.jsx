@@ -14,6 +14,7 @@ import HiveRating from "../components/HiveRating";
 import UserAvatar from "../components/UserAvatar";
 import ProjectCover from "../components/ProjectCover";
 import BoostPanel from "../components/BoostPanel";
+import PlusBadge from "../components/PlusBadge";
 import { isBoosted } from "../lib/billing";
 import classes from "./ProjectDetails.module.css";
 
@@ -532,7 +533,7 @@ export default function ProjectDetails() {
                     <div className={classes.ownerIdentity}>
                       <strong className={classes.ownerName}>
                         {ownerName}
-                        {owner?.plan === "plus" && <span className={classes.plusBadge}>{t("billing.plusBadge")}</span>}
+                        {owner?.plan === "plus" && <PlusBadge className={classes.plusBadge} />}
                       </strong>
                       {ownerLocation && <span className={classes.ownerLocation}>{ownerLocation}</span>}
                     </div>

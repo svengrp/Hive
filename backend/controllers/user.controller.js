@@ -85,6 +85,8 @@ function sanitizePublicProfile(user) {
     // Vie privée : jamais la rue ni le code postal en public, seulement ville et pays
     address: { city: user.address?.city || "", country: user.address?.country || "" },
     reputation: user.reputation,
+    // Badge Hive+ public (seulement le fait d'être membre, rien sur la facturation)
+    plan: user.plan === 'plus' ? 'plus' : 'free',
     createdAt: user.createdAt,
   };
 }

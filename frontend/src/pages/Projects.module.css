@@ -454,6 +454,18 @@
   margin-bottom: 16px;
 }
 
+/* « Mis en avant » : étoile dorée, comme le badge des cartes boostées */
+.boostedTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.boostedTitle svg {
+  color: var(--gold);
+  fill: var(--gold);
+}
+
 /* RESPONSIVE */
 @media (max-width: 600px) {
   .container {

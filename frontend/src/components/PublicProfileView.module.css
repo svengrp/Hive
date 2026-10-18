@@ -238,3 +238,11 @@
   font-size: 13px;
   font-weight: 500;
 }
+
+/* Nom + badge Hive+ */
+.nameRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
