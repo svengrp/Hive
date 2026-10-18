@@ -19,6 +19,20 @@ const notifAvatar = (n) => avatarSrc({
   avatarVersion: n.meta?.senderAvatarVersion,
 });
 
+/* Photo de l'expéditeur, ou son initiale (pas de photo, ou image introuvable) */
+function NotifAvatar({ n }) {
+  const [failed, setFailed] = useState(false);
+  const src = notifAvatar(n);
+  return (
+    <div className={classes.notifAvatar}>
+      {src && !failed
+        ? <img src={src} alt="" className={classes.notifAvatarImg} onError={() => setFailed(true)} />
+        : <span className={classes.notifAvatarDefault}>{(n.meta?.senderName?.[0] || '?').toUpperCase()}</span>
+      }
+    </div>
+  );
+}
+
 function formatTimeAgo(date) {
   const diff = (Date.now() - new Date(date)) / 1000;
   if (diff < 60) return "à l'instant";
@@ -109,14 +123,7 @@ export default function Header() {
     if (notif.link) navigate(notif.link);
   };
 
-  const renderNotifAvatar = (n) => (
-    <div className={classes.notifAvatar}>
-      {notifAvatar(n)
-        ? <img src={notifAvatar(n)} alt="" className={classes.notifAvatarImg} />
-        : <span className={classes.notifAvatarDefault}>{(n.meta?.senderName?.[0] || '?').toUpperCase()}</span>
-      }
-    </div>
-  );
+  const renderNotifAvatar = (n) => <NotifAvatar key={`avatar-${n._id}`} n={n} />;
 
   const closeMenu = () => setMenuOpen(false);
 

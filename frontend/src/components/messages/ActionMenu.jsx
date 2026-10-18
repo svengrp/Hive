@@ -41,6 +41,7 @@ export default function ActionMenu({
 }) {
   const [open, setOpen] = useState(false);
   const [placeUp, setPlaceUp] = useState(false);
+  const [alignLeft, setAlignLeft] = useState(false);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
   const menuId = useId();
@@ -54,14 +55,20 @@ export default function ActionMenu({
 
   const menuItems = () => itemsOf(menuRef.current);
 
-  // Place le menu vers le haut s'il manque de place sous le bouton (dans la zone qui défile)
+  // Place le menu vers le haut s'il manque de place sous le bouton (dans la zone qui défile),
+  // et l'aligne sur la gauche du bouton s'il dépasserait à gauche de cette zone (message reçu)
   useLayoutEffect(() => {
-    if (!open || !menuRef.current || !buttonRef.current) return;
+    if (!open || !menuRef.current || !buttonRef.current) {
+      setAlignLeft(false);
+      return;
+    }
     const boundary = buttonRef.current.closest("[data-menu-boundary]");
-    const bottomLimit = boundary ? boundary.getBoundingClientRect().bottom : window.innerHeight;
+    const zone = boundary ? boundary.getBoundingClientRect() : { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth };
     const btnRect = buttonRef.current.getBoundingClientRect();
     const menuHeight = menuRef.current.offsetHeight;
-    setPlaceUp(btnRect.bottom + 4 + menuHeight > bottomLimit - 8 && btnRect.top - menuHeight - 4 > 8);
+    const menuWidth = menuRef.current.offsetWidth;
+    setPlaceUp(btnRect.bottom + 4 + menuHeight > zone.bottom - 8 && btnRect.top - menuHeight - 4 > 8);
+    setAlignLeft(btnRect.right - menuWidth < zone.left + 8 && btnRect.left + menuWidth <= zone.right - 8);
     itemsOf(menuRef.current)[0]?.focus();
   }, [open]);
 
@@ -121,7 +128,7 @@ export default function ActionMenu({
           id={menuId}
           role="menu"
           aria-label={buttonLabel}
-          className={`${classes.menu} ${placeUp ? classes.menuUp : ""}`}
+          className={`${classes.menu} ${placeUp ? classes.menuUp : ""} ${alignLeft ? classes.menuLeft : ""}`}
           onKeyDown={onMenuKeyDown}
         >
           {items.map((item) =>

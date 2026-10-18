@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Compass, Plus, ArrowDown, ArrowRight } from 'lucide-react';
+import { Compass, Plus, ArrowDown, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import MapView from '../components/MapView';
 import HowItWorks from '../components/HowItWorks';
@@ -22,21 +22,57 @@ function useOnboardingAnswers() {
 }
 
 /* Accueil d'une personne que Hive connaît déjà (compte, ou parcours fait) :
-   pas de présentation du site, on la salue et on va droit aux projets. */
+   pas de présentation du site, on la salue et on va droit aux projets.
+   Réductible en une fine barre (choix mémorisé sur l'appareil) pour laisser la place à la carte. */
+const WELCOME_COLLAPSED_KEY = 'hive-welcome-collapsed';
+
 function Welcome({ user, answers }) {
   const { t } = useTranslation();
   const name = (user?.firstName || answers.firstName || '').trim();
   const place = answers.city.trim() || user?.address?.city || '';
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem(WELCOME_COLLAPSED_KEY) === '1'; } catch { return false; }
+  });
+  const toggle = () => setCollapsed((value) => {
+    try { localStorage.setItem(WELCOME_COLLAPSED_KEY, value ? '0' : '1'); } catch { /* stockage indisponible */ }
+    return !value;
+  });
+  const hello = name
+    ? <>{t('home.welcome.hello')}, <span className={classes.welcomeName}>{name}</span>.</>
+    : t('home.welcome.helloAnonymous');
+
+  if (collapsed) {
+    return (
+      <section className={classes.welcomeBar}>
+        <div className={classes.welcomeBarInner}>
+          <p className={classes.welcomeBarTitle}>{hello}</p>
+          <div className={classes.welcomeBarActions}>
+            <Link to="/projects" className={`${classes.primaryCta} ${classes.ctaSmall}`}>
+              <Compass size={16} />
+              <span className={classes.ctaLabel}>{t('home.explore')}</span>
+            </Link>
+            <Link to="/create-project" className={`${classes.secondaryCta} ${classes.ctaSmall}`} aria-label={t('home.createProject')}>
+              <Plus size={16} />
+              <span className={classes.ctaLabel}>{t('home.createProject')}</span>
+            </Link>
+            <button type="button" className={classes.collapseBtn} onClick={toggle} aria-expanded="false" aria-label={t('home.welcome.expand')} title={t('home.welcome.expand')}>
+              <ChevronDown size={18} />
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={classes.welcome}>
+      <button type="button" className={`${classes.collapseBtn} ${classes.collapseCorner}`} onClick={toggle} aria-expanded="true" aria-label={t('home.welcome.collapse')} title={t('home.welcome.collapse')}>
+        <ChevronUp size={18} />
+        <span className={classes.collapseLabel}>{t('home.welcome.collapse')}</span>
+      </button>
       <div className={classes.welcomeInner}>
         <div className={classes.welcomeMain}>
-          <h1 className={classes.welcomeTitle}>
-            {name ? (
-              <>{t('home.welcome.hello')}, <span className={classes.welcomeName}>{name}</span>.</>
-            ) : t('home.welcome.helloAnonymous')}
-          </h1>
+          <h1 className={classes.welcomeTitle}>{hello}</h1>
           <p className={classes.welcomeLead}>
             {place ? t('home.welcome.leadPlace', { place }) : t('home.welcome.lead')}
           </p>

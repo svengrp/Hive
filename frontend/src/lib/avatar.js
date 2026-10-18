@@ -15,7 +15,8 @@ const MAX_BYTES = 190 * 1024;
 /* Adresse de l'image à afficher pour une personne (ou null : initiales) */
 export function avatarSrc(user) {
   const url = user?.avatarUrl?.trim();
-  if (url) return url;
+  // « /avatars/default.png » : valeur par défaut des anciens comptes, sans image réelle → initiales
+  if (url && !url.startsWith("/avatars/")) return url;
   if (user?._id && user.avatarVersion) return `${BASE_URL}/user/${user._id}/avatar?v=${user.avatarVersion}`;
   return null;
 }

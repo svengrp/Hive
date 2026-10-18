@@ -29,7 +29,9 @@
       "lead": "Voici les projets ouverts en ce moment. Rejoins-en un ou lance le tien.",
       "finishTitle": "Profil prêt à 90 %",
       "finishNote": "Crée ton compte pour garder tes choix et écrire aux porteurs de projet.",
-      "finishCta": "Créer mon compte"
+      "finishCta": "Créer mon compte",
+      "collapse": "Réduire",
+      "expand": "Afficher l’accueil"
     }
   },
   "howItWorks": {

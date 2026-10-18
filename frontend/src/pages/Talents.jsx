@@ -61,6 +61,9 @@ export default function Talents() {
     setInviting(null);
   };
 
+  // Premier chargement : rien tant qu'on ne sait pas si la personne est membre (pas de flash de l'interface Hive+)
+  if (status === "loading") return <div className={classes.page} aria-busy="true" />;
+
   if (status === "locked") {
     return (
       <div className={classes.page}>

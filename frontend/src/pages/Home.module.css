@@ -206,8 +206,112 @@
 
 /* ---------- Accueil d'une personne connue : salutation courte, puis la carte ---------- */
 .welcome {
+  position: relative;
   padding: 48px 32px 40px;
   background: var(--bg-main);
+}
+
+/* Réduire / déplier l'accueil */
+.collapseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.collapseBtn:hover {
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
+.collapseBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.collapseCorner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  padding: 0 14px 0 10px;
+}
+
+/* Accueil réduit : une barre, la carte juste en dessous */
+.welcomeBar {
+  padding: 10px 32px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-main);
+}
+
+.welcomeBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.welcomeBarTitle {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.welcomeBarActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctaSmall {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .welcomeBar {
+    padding: 8px 16px;
+  }
+
+  /* Mobile : boutons réduits à leur icône dans la barre, libellé « Réduire » masqué */
+  .welcomeBar .ctaLabel,
+  .collapseLabel {
+    display: none;
+  }
+
+  .ctaSmall {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .collapseCorner {
+    top: 12px;
+    right: 12px;
+    padding: 0;
+  }
 }
 
 .welcomeInner {

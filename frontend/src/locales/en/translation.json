@@ -29,7 +29,9 @@
       "lead": "Here are the projects open right now. Join one or start your own.",
       "finishTitle": "Profile 90% ready",
       "finishNote": "Create your account to keep your choices and message project owners.",
-      "finishCta": "Create my account"
+      "finishCta": "Create my account",
+      "collapse": "Collapse",
+      "expand": "Show welcome"
     }
   },
   "howItWorks": {
