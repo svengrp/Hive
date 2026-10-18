@@ -10,7 +10,8 @@
     "language": "Language",
     "lightMode": "Light mode",
     "darkMode": "Dark mode",
-    "plus": "Hive+"
+    "plus": "Hive+",
+    "talents": "Talents"
   },
   "home": {
     "titleMain": "Find the right people to",
@@ -496,7 +497,9 @@
     "kicked_reason": " Reason: {{reason}}",
     "request_accepted": "Your request to join \"{{title}}\" has been accepted!",
     "new_member": "{{name}} requested to join your project \"{{title}}\".",
-    "rated": "{{name}} rated you {{score}}/5 for « {{title}} »."
+    "rated": "{{name}} rated you {{score}}/5 for « {{title}} ».",
+    "invitation": "{{name}} invites you to join “{{title}}”.",
+    "invitation_accepted": "{{name}} accepted your invitation to “{{title}}”."
   },
   "admin": {
     "title": "Admin Dashboard",
@@ -630,6 +633,7 @@
     "plusFeatures": [
       "{{count}} boosts a month: your project at the top of “Featured” for {{hours}} h",
       "Project stats: views, visitors, requests",
+      "Talent search: find people by skill and invite them to your projects",
       "Hive+ badge on your profile and projects",
       "You support an independent platform built in Switzerland"
     ],
@@ -718,6 +722,7 @@
     "stripHint": "Use them from one of your project pages",
     "freeMissing": [
       "{{count}} boosts per month included",
+      "Talent search and invitations",
       "Project statistics",
       "Hive+ badge"
     ],
@@ -863,5 +868,56 @@
   "otp": {
     "label": "6-digit code",
     "digit": "Digit {{n}} of 6"
+  },
+  "talents": {
+    "title": "Find talent",
+    "subtitle": "People available to join a project. Find them by skill and invite them directly.",
+    "searchPlaceholder": "Skill, name… (e.g. guitar, video editing)",
+    "cityPlaceholder": "City",
+    "count_zero": "Nobody available",
+    "count_one": "{{count}} person available",
+    "count_other": "{{count}} people available",
+    "empty": "Nobody matches this search right now.",
+    "emptyHint": "Try another skill or remove the city filter.",
+    "viewProfile": "View profile",
+    "invite": "Invite",
+    "invited": "Invited",
+    "loadMore": "Show more",
+    "loadError": "The search couldn’t load. Try again in a moment.",
+    "lockedTitle": "Talent search is part of Hive+",
+    "lockedText_zero": "With Hive+, find people by skill and city, and invite them straight into your projects.",
+    "lockedText_one": "{{count}} person is available right now to join a project. With Hive+, find them by skill and invite them straight into your projects.",
+    "lockedText_other": "{{count}} people are available right now to join a project. With Hive+, find them by skill and invite them straight into your projects.",
+    "lockedCta": "Discover Hive+",
+    "beVisible": "You can be found too: turn on “Available to join projects” on your profile.",
+    "inviteTitle": "Invite {{name}}",
+    "inviteProject": "Which project?",
+    "inviteMessage": "Message (optional)",
+    "inviteMessagePlaceholder": "Describe your project in one sentence and say why you thought of this person.",
+    "inviteSend": "Send",
+    "inviteCancel": "Cancel",
+    "inviteSent": "Invitation sent to {{name}}.",
+    "alreadyInvited": "already invited",
+    "full": "full",
+    "noOpenProject": "You don’t have an open project right now.",
+    "createProject": "Create a project",
+    "inviteError": "The invitation couldn’t be sent.",
+    "visibilityTitle": "Visibility",
+    "openToProjects": "Available to join projects",
+    "openToProjectsHint": "Hive+ members can find you in talent search and invite you to their projects. Your email is never shown."
+  },
+  "invitations": {
+    "title": "My invitations",
+    "subtitle": "Project creators are inviting you to join them.",
+    "empty": "No pending invitations.",
+    "emptyHint": "To receive some, turn on “Available to join projects” on your profile.",
+    "goProfile": "Go to my profile",
+    "invitedBy": "Invited by {{name}}",
+    "accept": "Join the project",
+    "decline": "Decline",
+    "viewProject": "View project",
+    "declined": "Invitation declined.",
+    "error": "That didn’t work. Try again in a moment.",
+    "spots": "{{count}} spot(s) left"
   }
 }

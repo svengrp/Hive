@@ -18,6 +18,7 @@ const Notification = require('../models/Notification');
 const Rating = require('../models/Rating');
 const User = require('../models/User');
 const UserAvatar = require('../models/UserAvatar');
+const ProjectInvitation = require('../models/ProjectInvitation');
 const { getStripe } = require('./billing');
 
 const ACTIVE_STATUSES = ['active', 'trialing', 'past_due', 'incomplete', 'unpaid'];
@@ -34,6 +35,7 @@ async function deleteProjectsData(projectIds) {
     ProjectEvent.deleteMany({ conversationId: { $in: conversationIds } }),
     ProjectCover.deleteMany({ projectId: { $in: projectIds } }),
     ProjectRequest.deleteMany({ projectId: { $in: projectIds } }),
+    ProjectInvitation.deleteMany({ projectId: { $in: projectIds } }),
     ProjectHistory.deleteMany({ projectId: { $in: projectIds } }),
     Rating.deleteMany({ $or: [{ projectId: { $in: projectIds } }, { targetType: 'project', targetId: { $in: projectIds } }] }),
   ]);
@@ -88,6 +90,7 @@ async function deleteUserAccount(user) {
     ProjectHistory.deleteMany({ userId }),
     Notification.deleteMany({ userId }),
     UserAvatar.deleteOne({ userId }),
+    ProjectInvitation.deleteMany({ $or: [{ inviterId: userId }, { inviteeId: userId }] }),
     Rating.deleteMany({ $or: [{ raterId: userId }, { targetType: 'user', targetId: userId }] }),
   ]);
 

@@ -10,7 +10,8 @@
     "language": "Langue",
     "lightMode": "Mode clair",
     "darkMode": "Mode sombre",
-    "plus": "Hive+"
+    "plus": "Hive+",
+    "talents": "Talents"
   },
   "home": {
     "titleMain": "Trouve les bonnes personnes pour",
@@ -496,7 +497,9 @@
     "kicked_reason": " Raison : {{reason}}",
     "request_accepted": "Votre demande pour rejoindre \"{{title}}\" a été acceptée !",
     "new_member": "{{name}} a demandé à rejoindre votre projet \"{{title}}\".",
-    "rated": "{{name}} vous a attribué une note de {{score}}/5 pour « {{title}} »."
+    "rated": "{{name}} vous a attribué une note de {{score}}/5 pour « {{title}} ».",
+    "invitation": "{{name}} t’invite à rejoindre « {{title}} ».",
+    "invitation_accepted": "{{name}} a accepté ton invitation pour « {{title}} »."
   },
   "admin": {
     "title": "Dashboard Admin",
@@ -630,6 +633,7 @@
     "plusFeatures": [
       "{{count}} boosts par mois : ton projet en tête de « Mis en avant » pendant {{hours}} h",
       "Statistiques de tes projets : vues, visiteurs, demandes",
+      "Recherche de talents : trouve des personnes par compétence et invite-les dans tes projets",
       "Badge Hive+ sur ton profil et tes projets",
       "Tu soutiens une plateforme indépendante, développée en Suisse"
     ],
@@ -718,6 +722,7 @@
     "stripHint": "À utiliser depuis la page d’un de tes projets",
     "freeMissing": [
       "{{count}} boosts par mois inclus",
+      "Recherche de talents et invitations",
       "Statistiques de tes projets",
       "Badge Hive+"
     ],
@@ -863,5 +868,56 @@
   "otp": {
     "label": "Code à 6 chiffres",
     "digit": "Chiffre {{n}} sur 6"
+  },
+  "talents": {
+    "title": "Trouver des talents",
+    "subtitle": "Des personnes disponibles pour rejoindre un projet. Trouve-les par compétence et invite-les directement.",
+    "searchPlaceholder": "Compétence, nom… (ex. guitare, montage vidéo)",
+    "cityPlaceholder": "Ville",
+    "count_zero": "Aucune personne disponible",
+    "count_one": "{{count}} personne disponible",
+    "count_other": "{{count}} personnes disponibles",
+    "empty": "Personne ne correspond à cette recherche pour le moment.",
+    "emptyHint": "Essaie une autre compétence ou retire le filtre de ville.",
+    "viewProfile": "Voir le profil",
+    "invite": "Inviter",
+    "invited": "Invité·e",
+    "loadMore": "Voir plus",
+    "loadError": "La recherche n’a pas pu se charger. Réessaie dans un instant.",
+    "lockedTitle": "La recherche de talents fait partie de Hive+",
+    "lockedText_zero": "Avec Hive+, trouve des personnes par compétence et par ville, et invite-les directement dans tes projets.",
+    "lockedText_one": "{{count}} personne est disponible en ce moment pour rejoindre un projet. Avec Hive+, trouve-la par compétence et invite-la directement dans tes projets.",
+    "lockedText_other": "{{count}} personnes sont disponibles en ce moment pour rejoindre un projet. Avec Hive+, trouve-les par compétence et invite-les directement dans tes projets.",
+    "lockedCta": "Découvrir Hive+",
+    "beVisible": "Toi aussi, tu peux être trouvé·e : active « Disponible pour rejoindre des projets » sur ton profil.",
+    "inviteTitle": "Inviter {{name}}",
+    "inviteProject": "Dans quel projet ?",
+    "inviteMessage": "Message (facultatif)",
+    "inviteMessagePlaceholder": "Présente ton projet en une phrase et dis pourquoi tu as pensé à cette personne.",
+    "inviteSend": "Envoyer",
+    "inviteCancel": "Annuler",
+    "inviteSent": "Invitation envoyée à {{name}}.",
+    "alreadyInvited": "déjà invité·e",
+    "full": "complet",
+    "noOpenProject": "Tu n’as pas de projet ouvert pour le moment.",
+    "createProject": "Créer un projet",
+    "inviteError": "L’invitation n’a pas pu être envoyée.",
+    "visibilityTitle": "Visibilité",
+    "openToProjects": "Disponible pour rejoindre des projets",
+    "openToProjectsHint": "Les membres Hive+ peuvent te trouver dans la recherche de talents et t’inviter dans leurs projets. Ton email n’est jamais visible."
+  },
+  "invitations": {
+    "title": "Mes invitations",
+    "subtitle": "Des créateurs de projets t’invitent à les rejoindre.",
+    "empty": "Aucune invitation en attente.",
+    "emptyHint": "Pour en recevoir, active « Disponible pour rejoindre des projets » sur ton profil.",
+    "goProfile": "Aller sur mon profil",
+    "invitedBy": "Invité·e par {{name}}",
+    "accept": "Rejoindre le projet",
+    "decline": "Refuser",
+    "viewProject": "Voir le projet",
+    "declined": "Invitation refusée.",
+    "error": "L’action n’a pas pu aboutir. Réessaie dans un instant.",
+    "spots": "{{count}} place(s) restante(s)"
   }
 }

@@ -143,6 +143,7 @@ export default function Header() {
             <>
               <li><Link to="/" className={classes.navLink}>{t("nav.home")}</Link></li>
               <li><Link to="/projects" className={classes.navLink}>{t("nav.projects")}</Link></li>
+              {user && <li><Link to="/talents" className={classes.navLink}>{t("nav.talents")}</Link></li>}
               <li><Link to="/profile" className={classes.navLink}>{t("nav.profile")}</Link></li>
               <li><Link to="/abonnement" className={classes.navLink}>{t("nav.plus")}</Link></li>
             </>
@@ -324,6 +325,12 @@ export default function Header() {
               <Link to="/create-project" className={classes.drawerActionLink} onClick={closeMenu}>
                 <Plus size={16} />
                 {t("projects.create")}
+              </Link>
+              <Link to="/talents" className={classes.drawerLink} onClick={closeMenu}>
+                {t("nav.talents")}
+              </Link>
+              <Link to="/invitations" className={classes.drawerLink} onClick={closeMenu}>
+                {t("invitations.title")}
               </Link>
               <Link to="/abonnement" className={classes.drawerLink} onClick={closeMenu}>
                 {t("nav.plus")}

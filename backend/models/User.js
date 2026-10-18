@@ -50,6 +50,8 @@ const userSchema = new mongoose.Schema({
   interests: { type: [String], default: [] },
   // Réponse du parcours de bienvenue : rejoindre un projet, lancer le sien, ou les deux
   onboardingGoal: { type: String, enum: ['join', 'launch', 'both', null], default: null },
+  // Visible dans la recherche de talents (Hive+) : choix explicite de la personne, désactivé par défaut
+  openToProjects: { type: Boolean, default: false },
 
   // --- Réputation ---
   reputation: {

@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  type:      { type: String, enum: ['request_accepted', 'request_declined', 'kicked', 'new_member', 'rated'], required: true },
+  type:      { type: String, enum: ['request_accepted', 'request_declined', 'kicked', 'new_member', 'rated', 'invitation', 'invitation_accepted'], required: true },
   message:   { type: String, required: true },
   meta:      { type: mongoose.Schema.Types.Mixed, default: {} },
   link:      { type: String, default: '' },

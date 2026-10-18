@@ -87,6 +87,7 @@ function sanitizePublicProfile(user) {
     reputation: user.reputation,
     // Badge Hive+ public (seulement le fait d'être membre, rien sur la facturation)
     plan: user.plan === 'plus' ? 'plus' : 'free',
+    openToProjects: !!user.openToProjects,
     createdAt: user.createdAt,
   };
 }
@@ -149,6 +150,7 @@ exports.updateInfos = async (req, res) => {
       avatarUrl,
       address,
       interests,
+      openToProjects,
     } = req.body;
 
     const updateData = {
@@ -164,6 +166,7 @@ exports.updateInfos = async (req, res) => {
       avatarUrl,
       address,
       interests: normalizeInterests(interests) ?? undefined,
+      openToProjects: typeof openToProjects === 'boolean' ? openToProjects : undefined,
     };
 
     Object.keys(updateData).forEach(

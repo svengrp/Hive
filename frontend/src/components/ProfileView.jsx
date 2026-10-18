@@ -89,6 +89,25 @@ export default function Profile() {
     }
   };
 
+  // Visible dans la recherche de talents Hive+ (opt-in, enregistré immédiatement)
+  const [openSaving, setOpenSaving] = useState(false);
+  const [openError, setOpenError] = useState(false);
+  const openToProjects = !!profile?.openToProjects;
+  const toggleOpenToProjects = async () => {
+    const next = !openToProjects;
+    setOpenError(false);
+    setOpenSaving(true);
+    setProfile((prev) => ({ ...prev, openToProjects: next }));
+    try {
+      await api("/user/profile", { method: "PUT", body: JSON.stringify({ openToProjects: next }) });
+    } catch {
+      setProfile((prev) => ({ ...prev, openToProjects: !next }));
+      setOpenError(true);
+    } finally {
+      setOpenSaving(false);
+    }
+  };
+
   // Préférence : email quand un message arrive hors connexion (enregistrée immédiatement)
   const [notifSaving, setNotifSaving] = useState(false);
   const [notifError, setNotifError] = useState(false);
@@ -573,6 +592,24 @@ export default function Profile() {
         <section className={classes.section}>
           <h2 className={classes.sectionTitle}>{t("billing.profileTitle")}</h2>
           <SubscriptionCard />
+        </section>
+        <section className={classes.section}>
+          <h2 className={classes.sectionTitle}>{t("talents.visibilityTitle")}</h2>
+          <label className={classes.switchRow}>
+            <span className={classes.switchText}>
+              <span className={classes.switchLabel}>{t("talents.openToProjects")}</span>
+              <span className={classes.switchHint}>{t("talents.openToProjectsHint")}</span>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              className={classes.switch}
+              checked={openToProjects}
+              disabled={openSaving || !profile}
+              onChange={toggleOpenToProjects}
+            />
+          </label>
+          {openError && <p className={classes.switchError} role="alert">{t("profile.notifSaveError")}</p>}
         </section>
         <section className={classes.section}>
           <h2 className={classes.sectionTitle}>{t("profile.notifTitle")}</h2>

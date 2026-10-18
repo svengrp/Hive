@@ -1,13 +1,12 @@
 const mongoose       = require("mongoose");
 const ProjectRequest = require("../models/ProjectRequest");
 const Project        = require("../models/Project");
-const Conversation   = require("../models/Conversation");
-const Message        = require("../models/Message");
 const Notification   = require("../models/Notification");
 const { joinRequestsTotal } = require('../metric');
 const User           = require("../models/User");
 const { sendJoinRequestEmail, sendRequestAcceptedEmail } = require("../utils/sendRequestEmail");
 const { containsProfanity } = require('../utils/profanityFilter');
+const { addMemberToProject } = require('../utils/projectMembership');
 
 const isId = (value) => mongoose.isValidObjectId(value) && /^[a-f0-9]{24}$/i.test(String(value));
 const isFull = (project) => project.maxParticipants != null && project.participants.length >= project.maxParticipants;
@@ -150,51 +149,14 @@ exports.acceptRequest = async (req, res) => {
     );
     if (!request) return res.status(409).json({ message: "Cette demande a déjà été traitée" });
 
-    // Ajoute le membre seulement s'il reste une place (vérifié par la base, dans la même opération)
-    const project = await Project.findOneAndUpdate(
-      {
-        _id: request.projectId,
-        status: 'open',
-        $expr: { $or: [{ $eq: [{ $ifNull: ['$maxParticipants', null] }, null] }, { $lt: [{ $size: '$participants' }, '$maxParticipants'] }] },
-      },
-      { $addToSet: { participants: request.senderId } },
-      { new: true }
-    );
-    if (!project) {
+    // Place vérifiée par la base, ajout au groupe, message système et temps réel
+    const io = req.app.get('io');
+    const joined = await addMemberToProject({ projectId: request.projectId, userId: request.senderId, io });
+    if (joined.error) {
       await ProjectRequest.updateOne({ _id: request._id }, { status: 'pending' });
-      const current = await Project.findById(request.projectId).select('status');
-      return res.status(409).json({ message: current?.status === 'open' ? "Le projet est complet" : "Le projet n'est plus ouvert" });
+      return res.status(409).json({ message: joined.error === 'full' ? "Le projet est complet" : "Le projet n'est plus ouvert" });
     }
-
-    // Crée la conversation de groupe si elle n'existe pas encore, sinon ajoute le membre
-    let conv = await Conversation.findOne({ projectId: project._id });
-    if (!conv) {
-      conv = await Conversation.create({
-        type: 'project',
-        projectId: project._id,
-        projectTitle: project.title,
-        participants: [project.ownerId, request.senderId],
-      });
-    } else {
-      await Conversation.findByIdAndUpdate(conv._id, {
-        $addToSet: { participants: request.senderId },
-      });
-      conv = await Conversation.findById(conv._id);
-    }
-
-    // Message système de bienvenue visible dans le chat du groupe
-    const newMember = await User.findById(request.senderId).select('displayName firstName lastName');
-    const memberName = newMember?.displayName ||
-      [newMember?.firstName, newMember?.lastName].filter(Boolean).join(' ') ||
-      'Un membre';
-
-    const sysMsg = await Message.create({
-      conversationId: conv._id,
-      senderId: request.senderId,
-      content: ` ${memberName} a rejoint le projet ! Bienvenue dans l'équipe — commencez à partager vos idées !`,
-      isSystem: true,
-      readBy: [project.ownerId, request.senderId],
-    });
+    const { project, conv, memberName } = joined;
 
     // Notification persistée pour le nouveau membre
     const owner = await User.findById(req.user.id).select('displayName firstName lastName avatarUrl avatarVersion');
@@ -209,16 +171,7 @@ exports.acceptRequest = async (req, res) => {
       link: `/messages?group=${conv._id}`,
     });
 
-    // Diffuse le message système et la notification via Socket.io
-    const io = req.app.get('io');
-    if (io) {
-      const populatedMsg = await Message.findById(sysMsg._id).populate('senderId', 'displayName firstName lastName avatarUrl avatarVersion _id');
-      conv.participants.forEach(uid => {
-        io.to(`user:${uid}`).emit('new_group_message', { conversationId: conv._id.toString(), message: populatedMsg });
-        io.to(`user:${uid}`).emit('conversation_updated');
-      });
-      io.to(`user:${request.senderId}`).emit('new_notification', notif);
-    }
+    if (io) io.to(`user:${request.senderId}`).emit('new_notification', notif);
 
     try {
       const member = await User.findById(request.senderId).select('email');
