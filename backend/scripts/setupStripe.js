@@ -24,6 +24,7 @@ const EVENTS = [
   'customer.subscription.updated',
   'customer.subscription.deleted',
   'invoice.paid',
+  'charge.refunded', // Boost remboursé : la mise en avant est retirée
 ];
 
 const key = process.env.STRIPE_SECRET_KEY || '';

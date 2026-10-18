@@ -44,6 +44,18 @@ async function applyBoost(projectId) {
   return project ? project.boostedUntil : null;
 }
 
+/* Boost remboursé : retire les BOOST_HOURS achetées (sans toucher aux autres boosts cumulés) ;
+   si la mise en avant restante est déjà passée, elle est supprimée. */
+async function revokeBoost(projectId) {
+  if (!mongoose.isValidObjectId(projectId)) return;
+  const ms = BOOST_HOURS * 3600 * 1000;
+  const shortened = { $subtract: ['$boostedUntil', ms] };
+  await Project.updateOne(
+    { _id: projectId, boostedUntil: { $ne: null } },
+    [{ $set: { boostedUntil: { $cond: [{ $gt: [shortened, '$$NOW'] }, shortened, null] } } }]
+  );
+}
+
 // GET /billing/plans — offres affichées (public)
 exports.getPlans = async (_req, res) => {
   const offer = foundersOffer();
@@ -248,6 +260,18 @@ exports.webhook = async (req, res) => {
             await user.save();
           }
         }
+        break;
+      }
+      case 'charge.refunded': {
+        // Boost remboursé intégralement : sa mise en avant est retirée. Les métadonnées du boost
+        // sont sur le paiement (PaymentIntent) ; la charge peut ne pas les porter.
+        if (!obj.refunded) break;
+        let meta = obj.metadata?.product ? obj.metadata : null;
+        if (!meta && obj.payment_intent) {
+          const piId = typeof obj.payment_intent === 'string' ? obj.payment_intent : obj.payment_intent.id;
+          meta = (await stripe.paymentIntents.retrieve(piId)).metadata;
+        }
+        if (meta?.product === 'boost') await revokeBoost(meta.projectId);
         break;
       }
       default:

@@ -118,6 +118,20 @@ test('paiements Hive+ et Boost', { skip }, async (t) => {
     assert.ok(new Date(p.boostedUntil) > new Date(Date.now() + 47 * 3600000));
   });
 
+  await t.test('Boost remboursé : mise en avant retirée', async () => {
+    const before = new Date((await client(server.url).get(`/projects/${maxProject._id}`)).body.boostedUntil);
+    assert.ok(before > new Date(), 'projet boosté avant le remboursement');
+    const charge = { object: 'charge', refunded: false, metadata: { product: 'boost', projectId: maxProject._id } };
+    await sendEvent(server, 'charge.refunded', charge);
+    const partial = new Date((await client(server.url).get(`/projects/${maxProject._id}`)).body.boostedUntil);
+    assert.strictEqual(partial.getTime(), before.getTime(), 'remboursement partiel : boost conservé');
+    await sendEvent(server, 'charge.refunded', { ...charge, refunded: true });
+    const p = (await client(server.url).get(`/projects/${maxProject._id}`)).body;
+    assert.strictEqual(p.boostedUntil, null, `boost encore actif : ${p.boostedUntil}`);
+    const boosted = await client(server.url).get('/projects/boosted');
+    assert.ok(!boosted.body.some((x) => x._id === maxProject._id));
+  });
+
   await t.test('résiliation : retour au plan gratuit', async () => {
     await sendEvent(server, 'customer.subscription.updated', subscription(lea, 'active', { cancel_at_period_end: true }));
     assert.strictEqual((await lea.api.get('/billing/me')).body.planCancelAtPeriodEnd, true);
