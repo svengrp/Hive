@@ -1,18 +1,18 @@
 /* Routes d'authentification — préfixe /api/auth
-   loginLimiter : max 5 requêtes/min par IP sur POST /login (brute-force protection).
-   Les routes de vérification OTP ne sont pas rate-limitées car elles nécessitent déjà un code valide. */
+   loginLimiter : 10 connexions/min par IP. codeLimiter : codes à 6 chiffres (en plus des 5 essais par code,
+   voir auth.controller). mailLimiter : routes qui envoient un email (anti spam de boîtes aux lettres). */
 const router = require('express').Router();
 const authController = require('../controllers/auth.controller');
 const requireAuth = require('../middlewares/requireAuth');
-const { loginLimiter } = require('../middlewares/rateLimiter');
+const { loginLimiter, codeLimiter, mailLimiter } = require('../middlewares/rateLimiter');
 
-router.post('/register', authController.register);
-router.post('/verify-email', authController.verifyEmail);
-router.post('/resend-verification-email', authController.resendVerificationEmail);
+router.post('/register', mailLimiter, authController.register);
+router.post('/verify-email', codeLimiter, authController.verifyEmail);
+router.post('/resend-verification-email', mailLimiter, authController.resendVerificationEmail);
 router.post('/login', loginLimiter, authController.login);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
-router.post("/verify-reset-code", authController.verifyResetCode);
+router.post('/forgot-password', mailLimiter, authController.forgotPassword);
+router.post('/reset-password', codeLimiter, authController.resetPassword);
+router.post("/verify-reset-code", codeLimiter, authController.verifyResetCode);
 router.get('/me', requireAuth, authController.getMe);
 
 // Connexion via Google / GitHub (voir utils/oauthProviders.js)

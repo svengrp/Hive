@@ -39,6 +39,6 @@ router.put('/:id/cover', requireAuth, coverController.uploadCover);
 router.delete('/:id/cover', requireAuth, coverController.deleteCover);
 
 // Route dynamique toujours en dernier
-router.get('/:id', controller.getProjectById);
+router.get('/:id', optionalAuth, controller.getProjectById);
 
 module.exports = router;

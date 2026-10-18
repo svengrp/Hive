@@ -1,3 +1,4 @@
+const mongoose       = require('mongoose');
 const Project        = require('../models/Project');
 const Conversation   = require('../models/Conversation');
 const Message        = require('../models/Message');
@@ -10,6 +11,28 @@ const Rating         = require('../models/Rating');
 const ProjectCover   = require('../models/ProjectCover');
 const { projectsCreatedTotal, projectsClosedTotal } = require('../metric');
 const { matchInterests, interestsQuery, parseInterestList } = require('../utils/interestMatching');
+const { deleteProjectsData } = require('../utils/accountDeletion');
+
+const isId = (value) => mongoose.isValidObjectId(value) && /^[a-f0-9]{24}$/i.test(String(value));
+
+/* Ajoute une note à la réputation en UNE opération atomique (pas de lecture puis écriture :
+   deux notes simultanées ne s'écrasent plus). */
+function addReputationVote(userId, score) {
+  const votes = { $ifNull: ['$reputation.votes', 0] };
+  const total = { $multiply: [{ $ifNull: ['$reputation.score', 0] }, votes] };
+  return User.updateOne({ _id: userId }, [{
+    $set: {
+      'reputation.score': { $round: [{ $divide: [{ $add: [total, score] }, { $add: [votes, 1] }] }, 1] },
+      'reputation.votes': { $add: [votes, 1] },
+    },
+  }]);
+}
+
+/* Note entière de 1 à 5, sinon null */
+const parseScore = (value) => {
+  const n = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : null;
+};
 
 /* Ajoute à chaque projet les centres d'intérêt auxquels il correspond (badge « Pour toi »). */
 function withMatches(projects, interests) {
@@ -61,7 +84,38 @@ function validateProjectPayload(body = {}, options = {}) {
   if (minAge != null && maxAge != null && maxAge < minAge) return "L'âge maximum doit être supérieur ou égal à l'âge minimum.";
   if (!Array.isArray(coordinates) || coordinates.length !== 2) return 'La localisation du projet est invalide.';
   if (coordinates.some((value) => typeof value !== 'number' || Number.isNaN(value))) return 'La localisation du projet est invalide.';
+  const [lng, lat] = coordinates;
+  if (Math.abs(lng) > 180 || Math.abs(lat) > 90) return 'La localisation du projet est invalide.';
 
+  return lengthError(body);
+}
+
+/* Limites de taille : un projet est affiché dans des listes, des cartes et des emails. */
+const LIMITS = { title: 120, description: 5000, city: 100, region: 100, repoUrl: 300 };
+const LIST_LIMITS = { tags: 15, requiredSkills: 20, langues: 10 };
+const LIST_ITEM_MAX = 40;
+
+function lengthError(body = {}) {
+  const meta = body.projectMeta || {};
+  const texts = { title: body.title, description: body.description, city: meta.city, region: meta.region, repoUrl: meta.repoUrl };
+  for (const [field, max] of Object.entries(LIMITS)) {
+    const value = texts[field];
+    if (value === undefined || value === null) continue;
+    if (typeof value !== 'string') return 'Valeur invalide.';
+    if (value.length > max) return `Le champ est trop long (${max} caractères au maximum).`;
+  }
+  for (const [field, max] of Object.entries(LIST_LIMITS)) {
+    const list = body[field];
+    if (list === undefined || list === null) continue;
+    if (!Array.isArray(list) || list.some((item) => typeof item !== 'string' || item.length > LIST_ITEM_MAX)) return 'Liste invalide.';
+    if (list.length > max) return `${max} éléments au maximum.`;
+  }
+  if (meta.repoUrl && !/^https?:\/\//i.test(meta.repoUrl)) return 'Le lien doit commencer par https://';
+  if (body.maxParticipants != null && body.maxParticipants !== '') {
+    const max = Number(body.maxParticipants);
+    if (!Number.isInteger(max) || max < 1 || max > 500) return 'Le nombre de participants doit être compris entre 1 et 500.';
+  }
+  if (meta.budget != null && meta.budget !== '' && (Number.isNaN(Number(meta.budget)) || Number(meta.budget) < 0)) return 'Budget invalide.';
   return null;
 }
 
@@ -135,6 +189,7 @@ function cosinSimilarity(vecA, vecB){
 // (matchedInterests) ; avec `forYou=1`, seuls ces projets sont renvoyés.
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const MAX_PAGE_SIZE = 48;
+const MAP_LIMIT = 1000;
 
 exports.getAllProjects = async (req, res) => {
   // Seules les chaînes sont acceptées : `?status[$ne]=x` ne doit pas devenir un opérateur Mongo.
@@ -161,22 +216,26 @@ exports.getAllProjects = async (req, res) => {
     conditions.push({ $or: [{ title: pattern }, { description: pattern }, { tags: pattern }] });
   }
 
-  if (status) {
-    conditions.push({ status });
+  // Brouillons et projets privés : visibles uniquement par leur créateur
+  const PUBLIC_STATUSES = ['open', 'closed'];
+  if (PUBLIC_STATUSES.includes(status)) {
+    conditions.push({ status, visibility: { $ne: 'private' } });
   } else if (userId) {
-    conditions.push({ $or: [{ status: 'open' }, { ownerId: userId }] });
+    conditions.push({ $or: [{ status: 'open', visibility: { $ne: 'private' } }, { ownerId: userId, status: { $ne: 'archived' } }] });
   } else {
-    conditions.push({ status: 'open' });
+    conditions.push({ status: 'open', visibility: { $ne: 'private' } });
   }
 
   const query = conditions.length === 1 ? conditions[0] : { $and: conditions };
   const find = () => Project.find(query)
-    .populate('ownerId', 'displayName firstName lastName avatarUrl plan')
+    .populate('ownerId', 'displayName firstName lastName avatarUrl avatarVersion plan')
     .populate('participants', '_id')
-    .sort({ createdAt: -1, _id: -1 });
+    .sort({ createdAt: -1, _id: -1 })
+    .lean();
 
+  // Sans `limit` (carte) : les 1000 projets les plus récents au plus
   if (req.query.limit === undefined) {
-    return res.json(withMatches(await find(), interests));
+    return res.json(withMatches(await find().limit(MAP_LIMIT), interests));
   }
 
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 12, 1), MAX_PAGE_SIZE);
@@ -192,12 +251,20 @@ exports.getAllProjects = async (req, res) => {
 
 // GET /projects/:id — détail d'un projet avec owner et participants populés
 exports.getProjectById = async (req, res) => {
+  if (!isId(req.params.id)) return res.status(404).json({ error: 'Project not found' });
   const project = await Project.findById(req.params.id)
     // Vie privée : ville et pays du créateur seulement (jamais la rue ni le code postal)
-    .populate('ownerId', 'displayName firstName lastName avatarUrl bio skills languages address.city address.country reputation createdAt plan')
-    .populate('participants', 'displayName firstName lastName avatarUrl');
+    .populate('ownerId', 'displayName firstName lastName avatarUrl avatarVersion bio skills languages address.city address.country reputation createdAt plan')
+    .populate('participants', 'displayName firstName lastName avatarUrl avatarVersion');
 
   if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  // Brouillon ou projet privé : seulement son créateur et ses membres
+  const viewer = req.user?.id;
+  const hidden = project.status === 'draft' || project.status === 'archived' || project.visibility === 'private';
+  const isMember = viewer && (String(project.ownerId?._id || project.ownerId) === viewer
+    || project.participants.some((p) => String(p?._id || p) === viewer));
+  if (hidden && !isMember) return res.status(404).json({ error: 'Project not found' });
 
   res.json(project);
 };
@@ -236,6 +303,7 @@ exports.createProject = async (req, res) => {
 
 // PUT /projects/:id — mise à jour réservée à l'owner, revalide le payload complet
 exports.updateProject = async (req, res) => {
+  if (!isId(req.params.id)) return res.status(404).json({ error: 'Project not found' });
   const project = await Project.findById(req.params.id);
 
   if (!project) return res.status(404).json({ error: 'Project not found' });
@@ -264,6 +332,10 @@ exports.updateProject = async (req, res) => {
     return res.status(400).json({ error: 'Le contenu contient des termes inappropriés.' });
   }
 
+  if (picked.maxParticipants != null && picked.maxParticipants !== '' && Number(picked.maxParticipants) < project.participants.length) {
+    return res.status(400).json({ error: `Le projet compte déjà ${project.participants.length} participants.` });
+  }
+
   Object.assign(project, picked);
   await project.save();
 
@@ -272,6 +344,7 @@ exports.updateProject = async (req, res) => {
 
 // DELETE /projects/:id — suppression réservée à l'owner
 exports.deleteProject = async (req, res) => {
+  if (!isId(req.params.id)) return res.status(404).json({ error: 'Project not found' });
   const project = await Project.findById(req.params.id);
 
   if (!project) return res.status(404).json({ error: 'Project not found' });
@@ -280,8 +353,13 @@ exports.deleteProject = async (req, res) => {
     return res.status(403).json({ error: 'Not authorized' });
   }
 
-  await project.deleteOne();
-  await ProjectCover.deleteOne({ projectId: project._id });
+  // Projet et tout ce qui s'y rattache : groupe, messages, tâches, rendez-vous, candidatures, couverture
+  const conv = await Conversation.findOne({ projectId: project._id }).select('participants').lean();
+  await deleteProjectsData([project._id]);
+
+  // Les membres voient le groupe disparaître de leur messagerie sans recharger
+  const io = req.app.get('io');
+  if (io && conv) conv.participants.forEach((uid) => io.to(`user:${uid}`).emit('conversation_updated'));
 
   res.json({ message: 'Project deleted' });
 };
@@ -325,7 +403,8 @@ exports.leaveProject = async (req, res) => {
   try {
     const { id: projectId } = req.params;
     const userId = req.user.id;
-    const { message } = req.body;
+    const message = typeof req.body?.message === 'string' ? req.body.message.slice(0, 300) : '';
+    if (!isId(projectId)) return res.status(404).json({ error: 'Projet introuvable' });
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ error: 'Projet introuvable' });
@@ -366,7 +445,7 @@ exports.leaveProject = async (req, res) => {
       const io = req.app.get('io');
       if (io) {
         const populated = await Message.findById(sysMsg._id)
-          .populate('senderId', 'displayName firstName lastName avatarUrl _id');
+          .populate('senderId', 'displayName firstName lastName avatarUrl avatarVersion _id');
         conv.participants.forEach(uid => {
           if (uid.toString() !== userId) {
             io.to(`user:${uid}`).emit('new_group_message', {
@@ -390,7 +469,10 @@ exports.leaveProject = async (req, res) => {
 exports.kickParticipant = async (req, res) => {
   try {
     const { id: projectId, userId: targetId } = req.params;
-    const { reason, rating } = req.body;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 300) : '';
+    const rating = req.body?.rating ? parseScore(req.body.rating) : null;
+    if (!isId(projectId) || !isId(targetId)) return res.status(404).json({ error: 'Projet introuvable' });
+    if (req.body?.rating && !rating) return res.status(400).json({ error: 'Note invalide (1-5)' });
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ error: 'Projet introuvable' });
@@ -431,7 +513,7 @@ exports.kickParticipant = async (req, res) => {
 
       const io = req.app.get('io');
       if (io) {
-        const populated = await Message.findById(sysMsg._id).populate('senderId', 'displayName firstName lastName avatarUrl _id');
+        const populated = await Message.findById(sysMsg._id).populate('senderId', 'displayName firstName lastName avatarUrl avatarVersion _id');
         conv.participants.forEach(uid => {
           if (uid.toString() !== targetId) {
             io.to(`user:${uid}`).emit('new_group_message', { conversationId: conv._id.toString(), message: populated });
@@ -443,25 +525,13 @@ exports.kickParticipant = async (req, res) => {
       }
     }
 
-    // Appliquer la note si fournie
-    if (rating && rating >= 1 && rating <= 5) {
-      const kicked = await User.findById(targetId);
-      if (kicked) {
-        const prev = kicked.reputation || { score: 0, votes: 0 };
-        const newVotes = prev.votes + 1;
-        const newScore = ((prev.score * prev.votes) + Number(rating)) / newVotes;
-        await User.findByIdAndUpdate(targetId, {
-          'reputation.score': Math.round(newScore * 10) / 10,
-          'reputation.votes': newVotes,
-        });
-        await Rating.create({
-          targetType: 'user',
-          targetId,
-          raterId: req.user.id,
-          projectId,
-          score: Number(rating),
-          comment: reason || '',
-        });
+    // Appliquer la note si fournie (une seule note par personne et par projet)
+    if (rating) {
+      try {
+        await Rating.create({ targetType: 'user', targetId, raterId: req.user.id, projectId, score: rating, comment: reason });
+        await addReputationVote(targetId, rating);
+      } catch (err) {
+        if (err.code !== 11000) throw err;
       }
     }
 
@@ -515,10 +585,16 @@ exports.rateParticipant = async (req, res) => {
   try {
     const { id: projectId } = req.params;
     const raterId = req.user.id;
-    const { targetId, score, comment } = req.body;
+    const { targetId } = req.body || {};
+    const score = parseScore(req.body?.score);
+    const comment = req.body?.comment ?? '';
 
-    if (!score || score < 1 || score > 5) return res.status(400).json({ error: 'Score invalide (1-5)' });
+    if (!score) return res.status(400).json({ error: 'Score invalide (1-5)' });
+    if (typeof comment !== 'string' || comment.length > 1000) return res.status(400).json({ error: 'Commentaire trop long (1000 caractères au maximum).' });
+    if (!isId(projectId)) return res.status(404).json({ error: 'Projet introuvable' });
+    if (!isId(targetId)) return res.status(404).json({ error: 'Participant introuvable dans ce projet' });
     if (targetId === raterId) return res.status(400).json({ error: 'Vous ne pouvez pas vous noter vous-même' });
+    if (containsProfanity(comment)) return res.status(400).json({ error: 'Le contenu contient des termes inappropriés.' });
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ error: 'Projet introuvable' });
@@ -530,28 +606,19 @@ exports.rateParticipant = async (req, res) => {
     if (!memberIds.includes(targetId) && project.ownerId.toString() !== targetId)
       return res.status(404).json({ error: 'Participant introuvable dans ce projet' });
 
-    const existing = await Rating.findOne({ projectId, raterId, targetId });
-    if (existing) return res.status(400).json({ error: 'Vous avez déjà noté ce participant pour ce projet' });
-
-    const target = await User.findById(targetId);
+    const target = await User.findById(targetId).select('_id');
     if (!target) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-    const prev = target.reputation || { score: 0, votes: 0 };
-    const newVotes = prev.votes + 1;
-    const newScore = ((prev.score * prev.votes) + Number(score)) / newVotes;
-    await User.findByIdAndUpdate(targetId, {
-      'reputation.score': Math.round(newScore * 10) / 10,
-      'reputation.votes': newVotes,
-    });
-
-    const rating = await Rating.create({
-      targetType: 'user',
-      targetId,
-      raterId,
-      projectId,
-      score: Number(score),
-      comment: comment || '',
-    });
+    // L'index unique (projet, auteur, cible) refuse un doublon, même envoyé en parallèle ;
+    // la réputation n'est mise à jour qu'une fois la note enregistrée.
+    let rating;
+    try {
+      rating = await Rating.create({ targetType: 'user', targetId, raterId, projectId, score, comment: comment.trim() });
+    } catch (err) {
+      if (err.code === 11000) return res.status(400).json({ error: 'Vous avez déjà noté ce participant pour ce projet' });
+      throw err;
+    }
+    await addReputationVote(targetId, score);
 
     const rater = await User.findById(raterId).select('displayName firstName lastName');
     const raterName = rater?.displayName || [rater?.firstName, rater?.lastName].filter(Boolean).join(' ') || 'Un membre';
@@ -601,7 +668,7 @@ exports.getBoosted = async (_req, res) => {
         const projects = await Project.find({ boostedUntil: { $gt: new Date() }, status: 'open', visibility: { $ne: 'private' } })
             .sort({ boostedUntil: -1 })
             .limit(6)
-            .populate('ownerId', 'displayName firstName lastName avatarUrl plan')
+            .populate('ownerId', 'displayName firstName lastName avatarUrl avatarVersion plan')
             .populate('participants', '_id');
         return res.json(projects);
     } catch (err) {
@@ -644,7 +711,7 @@ exports.getStats = async (req, res) => {
 // - centres d'intérêt de la personne (choisis à l'arrivée ou sur le profil), dès le premier jour ;
 // - puis, avec au moins 3 projets consultés, similarité cosinus des thèmes avec ces projets.
 // Score final = similarité (0 à 1) + 0,5 × part des centres d'intérêt couverts.
-const RECOMMENDED_POPULATE = ['ownerId', 'displayName firstName lastName avatarUrl plan'];
+const RECOMMENDED_POPULATE = ['ownerId', 'displayName firstName lastName avatarUrl avatarVersion plan'];
 const INTEREST_WEIGHT = 0.5;
 
 exports.getRecommended = async(req, res) => {

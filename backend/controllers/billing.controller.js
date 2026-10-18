@@ -32,14 +32,16 @@ const checkoutConsent = () => {
   };
 };
 
-/* Prolonge la mise en avant d'un projet de BOOST_HOURS (à partir de maintenant ou de la fin du boost en cours) */
+/* Prolonge la mise en avant d'un projet de BOOST_HOURS (à partir de maintenant ou de la fin du boost en cours).
+   Calcul fait par la base en une opération : deux boosts appliqués en même temps se cumulent. */
 async function applyBoost(projectId) {
-  const project = await Project.findById(projectId).select('boostedUntil');
-  if (!project) return null;
-  const from = Math.max(Date.now(), project.boostedUntil ? project.boostedUntil.getTime() : 0);
-  project.boostedUntil = new Date(from + BOOST_HOURS * 3600 * 1000);
-  await project.save();
-  return project.boostedUntil;
+  if (!mongoose.isValidObjectId(projectId)) return null;
+  const project = await Project.findOneAndUpdate(
+    { _id: projectId },
+    [{ $set: { boostedUntil: { $add: [{ $max: ['$$NOW', { $ifNull: ['$boostedUntil', '$$NOW'] }] }, BOOST_HOURS * 3600 * 1000] } } }],
+    { new: true }
+  ).select('boostedUntil');
+  return project ? project.boostedUntil : null;
 }
 
 // GET /billing/plans — offres affichées (public)

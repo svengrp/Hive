@@ -11,8 +11,13 @@ const userSchema = new mongoose.Schema({
   emailVerified: { type: Boolean, default: false },
   emailVerificationCodeHash: { type: String, default: null },
   emailVerificationExpire: { type: Date, default: null },
+  emailVerificationAttempts: { type: Number, default: 0 }, // essais faux sur le code en cours (anti force brute)
   resetCodeHash: { type: String, default: null },
   resetCodeExpire: { type: Date, default: null },
+  resetCodeAttempts: { type: Number, default: 0 },
+  // Version des sessions : incrémentée au changement / à la réinitialisation du mot de passe,
+  // ce qui invalide tous les jetons (JWT) émis avant.
+  sessionVersion: { type: Number, default: 0 },
   twoFactorEnabled: { type: Boolean, default: false },
   twoFactorExpire: { type: Date, default: null },
   twoFactorCode: { type: String, default: null },
@@ -39,6 +44,8 @@ const userSchema = new mongoose.Schema({
   education: { type: [String], default: [] },
   skills: { type: [String], default: [] },
   avatarUrl: { type: String, default: "/avatars/default.png" },
+  // Photo envoyée par la personne (stockée dans UserAvatar) : horodatage servant de version d'URL
+  avatarVersion: { type: Number, default: null },
   // Centres d'intérêt (clés de utils/interests.js), choisis à l'arrivée ou sur le profil
   interests: { type: [String], default: [] },
   // Réponse du parcours de bienvenue : rejoindre un projet, lancer le sien, ou les deux
@@ -82,4 +89,19 @@ const userSchema = new mongoose.Schema({
 
 }, { timestamps: true }); // ajoute createdAt & updatedAt auto
 
+/* Champs internes jamais renvoyés au navigateur, même à la personne elle-même
+   (réponse de connexion, /auth/me, profil, administration). */
+const PRIVATE_FIELDS = [
+  'passwordHash', 'emailVerificationCodeHash', 'emailVerificationExpire', 'emailVerificationAttempts',
+  'resetCodeHash', 'resetCodeExpire', 'resetCodeAttempts', 'twoFactorCode', 'twoFactorExpire',
+  'loginAttempts', 'lockUntil', 'messageEmailSentAt', 'sessionVersion', 'stripeCustomerId', 'stripeSubscriptionId',
+];
+const hidePrivate = (_doc, ret) => {
+  PRIVATE_FIELDS.forEach((field) => delete ret[field]);
+  return ret;
+};
+userSchema.set('toJSON', { transform: hidePrivate });
+userSchema.set('toObject', { transform: hidePrivate });
+
 module.exports = mongoose.model('User', userSchema);
+module.exports.PRIVATE_FIELDS = PRIVATE_FIELDS;

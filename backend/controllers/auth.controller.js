@@ -2,6 +2,8 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const sendEmail = require("../utils/sendEmail");
+const { renderEmail, escapeHtml } = require('../utils/emailLayout');
+const { signSession } = require('../utils/session');
 const User = require('../models/User');
 const { registrationsTotal, loginsTotal } = require('../metric');
 const oauth = require('../utils/oauthProviders');
@@ -10,33 +12,71 @@ const { TERMS_VERSION } = require('../utils/legal');
 /* Regex de validation — email RFC-compatible, mot de passe 8-15 cars avec maj/min/chiffre/spécial */
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,15}$/;
+const PASSWORD_RULE = "Le mot de passe doit contenir 8 à 15 caractères, avec majuscule, minuscule, chiffre et caractère spécial.";
 const VERIFICATION_CODE_TTL_MS = 15 * 60 * 1000;
+const MAX_CODE_ATTEMPTS = 5;
+// Délai minimal entre deux envois de code au même compte (anti spam de boîte aux lettres)
+const CODE_RESEND_COOLDOWN_MS = Number(process.env.CODE_RESEND_COOLDOWN_MS ?? 60 * 1000);
+// Un code bloqué (trop d'essais) peut toujours être remplacé tout de suite.
+const sentRecently = (expire, attempts) => !!expire && (attempts || 0) < MAX_CODE_ATTEMPTS
+  && expire.getTime() - VERIFICATION_CODE_TTL_MS > Date.now() - CODE_RESEND_COOLDOWN_MS;
+const TOO_MANY_CODE_ATTEMPTS = "Trop d'essais avec ce code. Demande un nouveau code.";
 
-/* Génère un code à 6 chiffres et le stocke hashé en base avec une TTL de 15 min */
+/* Seules les chaînes sont acceptées : { "$ne": null } ne doit jamais atteindre une requête Mongo */
+const str = (value) => (typeof value === 'string' ? value : '');
+const normalizeEmail = (value) => str(value).trim().toLowerCase();
+
+/* Code à 6 chiffres (générateur cryptographique), stocké hashé en base avec une TTL de 15 min */
 function generateVerificationCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 async function assignEmailVerificationCode(user) {
   const verificationCode = generateVerificationCode();
   user.emailVerificationCodeHash = await bcrypt.hash(verificationCode, 10);
   user.emailVerificationExpire = new Date(Date.now() + VERIFICATION_CODE_TTL_MS);
+  user.emailVerificationAttempts = 0;
   return verificationCode;
 }
 
-async function sendVerificationEmail(user, verificationCode) {
-  await sendEmail({
-    to: user.email,
-    subject: "Vérifiez votre adresse email",
-    html: `
-      <p>Bonjour ${user.firstName || user.displayName || ""},</p>
-      <p>Merci d'avoir créé votre compte sur Hive.</p>
-      <p>Voici votre code de vérification :</p>
-      <h2 style="letter-spacing:2px">${verificationCode}</h2>
-      <p>Ce code est valable <strong>15 minutes</strong>.</p>
-      <p>Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.</p>
-    `,
+/* Vérifie un code à usage unique (vérification d'email ou réinitialisation).
+   L'essai est compté AVANT la comparaison, de façon atomique : des requêtes envoyées en parallèle
+   ne peuvent pas dépasser MAX_CODE_ATTEMPTS. Renvoie { status: 'ok', user } | 'invalid' | 'locked'. */
+async function checkCode(email, code, { hash, expire, attempts }) {
+  const reserved = await User.findOneAndUpdate(
+    { email, [hash]: { $ne: null }, [expire]: { $gt: new Date() }, [attempts]: { $lt: MAX_CODE_ATTEMPTS } },
+    { $inc: { [attempts]: 1 } },
+    { new: true }
+  );
+  if (!reserved) {
+    const exists = await User.exists({ email, [hash]: { $ne: null }, [expire]: { $gt: new Date() } });
+    return exists ? 'locked' : 'invalid';
+  }
+  const value = typeof code === 'number' ? String(code) : str(code).trim();
+  if (/^\d{6}$/.test(value) && await bcrypt.compare(value, reserved[hash])) return { status: 'ok', user: reserved };
+  return reserved[attempts] >= MAX_CODE_ATTEMPTS ? 'locked' : 'invalid';
+}
+
+function codeEmail({ heading, intro, code, note }) {
+  return renderEmail({
+    preheader: `Ton code Hive : ${code}`,
+    heading,
+    paragraphs: [intro],
+    code,
+    note,
+    text: `${heading}\n\nTon code : ${code}\nIl est valable 15 minutes.\n\n${note}`,
   });
+}
+
+async function sendVerificationEmail(user, verificationCode) {
+  const name = user.firstName || user.displayName;
+  const { html, text } = codeEmail({
+    heading: 'Confirme ton adresse email',
+    intro: `${name ? `Bonjour ${escapeHtml(name)}, merci` : 'Merci'} d’avoir créé ton compte Hive. Saisis ce code pour confirmer ton adresse ; il est valable <strong>15 minutes</strong>.`,
+    code: verificationCode,
+    note: 'Si tu n’es pas à l’origine de cette inscription, ignore cet email.',
+  });
+  await sendEmail({ to: user.email, subject: `${verificationCode} est ton code de vérification Hive`, html, text });
 }
 
 
@@ -45,10 +85,10 @@ async function sendVerificationEmail(user, verificationCode) {
 // ==============================
 exports.register = async (req, res) => {
   try {
-    const { email, password, acceptTerms } = req.body;
-    const normalizedEmail = email?.trim().toLowerCase();
+    const { password, acceptTerms } = req.body || {};
+    const normalizedEmail = normalizeEmail(req.body?.email);
 
-    if (!normalizedEmail || !password) {
+    if (!normalizedEmail || typeof password !== 'string' || !password) {
       return res.status(400).json({ error: 'Email et mot de passe requis' });
     }
 
@@ -62,9 +102,7 @@ exports.register = async (req, res) => {
     }
 
     if (!PASSWORD_REGEX.test(password)) {
-      return res.status(400).json({
-        error: "Le mot de passe doit contenir 8 à 15 caractères, avec majuscule, minuscule, chiffre et caractère spécial.",
-      });
+      return res.status(400).json({ error: PASSWORD_RULE });
     }
 
     let user = await User.findOne({ email: normalizedEmail });
@@ -101,7 +139,7 @@ exports.register = async (req, res) => {
     });
   } catch (err) {
     console.error('Register error:', err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: "L'inscription n'a pas pu aboutir. Réessaie dans un instant." });
   }
 };
 
@@ -113,10 +151,10 @@ const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const normalizedEmail = email?.trim().toLowerCase();
+    const password = str(req.body?.password);
+    const normalizedEmail = normalizeEmail(req.body?.email);
 
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = normalizedEmail ? await User.findOne({ email: normalizedEmail }) : null;
     if (!user) {
       loginsTotal.inc({ status: 'failed' });
       return res.status(401).json({ error: 'Email ou mot de passe invalide' });
@@ -139,7 +177,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    const isValid = await bcrypt.compare(password ?? '', user.passwordHash);
+    const isValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValid) {
       loginsTotal.inc({ status: 'failed' });
@@ -164,12 +202,18 @@ exports.login = async (req, res) => {
     user.lockUntil = null;
     await user.save();
 
-    const rememberMe = req.body.rememberMe === true;
-    const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: rememberMe ? '30d' : '1d' }
-    );
+    // Bon mot de passe mais adresse jamais confirmée : pas de session tant que le code n'est pas saisi
+    // (le front renvoie un code et affiche l'étape de vérification).
+    if (!user.emailVerified) {
+      loginsTotal.inc({ status: 'failed' });
+      return res.status(403).json({
+        code: 'email_not_verified',
+        email: user.email,
+        error: "Confirme d'abord ton adresse email avec le code reçu.",
+      });
+    }
+
+    const token = signSession(user, req.body.rememberMe === true);
 
     loginsTotal.inc({ status: 'success' });
     return res.json({ message: 'Connexion réussie', token, user });
@@ -294,11 +338,7 @@ exports.oauthCallback = async (req, res) => {
     if (!profile.email || !profile.emailVerified) return fail('email');
 
     const user = await findOrCreateOAuthUser(provider, profile);
-    const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: state.r ? '30d' : '1d' }
-    );
+    const token = signSession(user, !!state.r);
 
     loginsTotal.inc({ status: 'success' });
     return res.redirect(frontUrl(`/auth/callback#token=${encodeURIComponent(token)}`));
@@ -313,36 +353,28 @@ exports.oauthCallback = async (req, res) => {
 // ==============================
 exports.forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(req.body?.email);
     if (!normalizedEmail) {
       return res.status(400).json({ message: "Email requis" });
     }
 
     const user = await User.findOne({ email: normalizedEmail });
 
-    if (user) {
-      // code 6 chiffres
-      const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      // hash du code
-      const resetCodeHash = await bcrypt.hash(resetCode, 10);
-
-      user.resetCodeHash = resetCodeHash;
-      user.resetCodeExpire = Date.now() + 15 * 60 * 1000; // 15 min
+    if (user && !sentRecently(user.resetCodeExpire, user.resetCodeAttempts)) {
+      const resetCode = generateVerificationCode();
+      user.resetCodeHash = await bcrypt.hash(resetCode, 10);
+      user.resetCodeExpire = new Date(Date.now() + VERIFICATION_CODE_TTL_MS);
+      user.resetCodeAttempts = 0;
       await user.save();
 
-      await sendEmail({
-        to: user.email,
-        subject: "Code de réinitialisation",
-        html: `
-          <p>Bonjour ${user.firstName || ""},</p>
-          <p>Voici votre code de réinitialisation :</p>
-          <h2 style="letter-spacing:2px">${resetCode}</h2>
-          <p>Ce code est valable <strong>15 minutes</strong>.</p>
-          <p>Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.</p>
-        `,
+      const name = user.firstName || user.displayName;
+      const { html, text } = codeEmail({
+        heading: 'Réinitialise ton mot de passe',
+        intro: `${name ? `Bonjour ${escapeHtml(name)}, voici` : 'Voici'} ton code pour choisir un nouveau mot de passe. Il est valable <strong>15 minutes</strong>.`,
+        code: resetCode,
+        note: 'Si tu n’as rien demandé, ignore cet email : ton mot de passe reste inchangé.',
       });
+      await sendEmail({ to: user.email, subject: `${resetCode} est ton code de réinitialisation Hive`, html, text });
     }
 
     return res.json({
@@ -355,37 +387,44 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
+const RESET_FIELDS = { hash: 'resetCodeHash', expire: 'resetCodeExpire', attempts: 'resetCodeAttempts' };
+const VERIFY_FIELDS = { hash: 'emailVerificationCodeHash', expire: 'emailVerificationExpire', attempts: 'emailVerificationAttempts' };
+
+/* Réponse commune d'un code refusé */
+const codeRefused = (res, result) => (result === 'locked'
+  ? res.status(429).json({ code: 'code_locked', message: TOO_MANY_CODE_ATTEMPTS, error: TOO_MANY_CODE_ATTEMPTS })
+  : res.status(400).json({ message: "Code invalide ou expiré", error: "Code invalide ou expiré" }));
+
 
 // ==============================
 // RESET MOT DE PASSE
 // ==============================
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, code, newPassword } = req.body;
-    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(req.body?.email);
+    const newPassword = str(req.body?.newPassword);
 
-    if (!normalizedEmail || !code || !newPassword) {
+    if (!normalizedEmail || !req.body?.code || !newPassword) {
       return res.status(400).json({ error: "Données manquantes" });
     }
-
-    const user = await User.findOne({
-      email: normalizedEmail,
-      resetCodeExpire: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({ error: "Code invalide ou expiré" });
+    if (!PASSWORD_REGEX.test(newPassword)) {
+      return res.status(400).json({ error: PASSWORD_RULE, message: PASSWORD_RULE });
     }
 
-    const isValidCode = await bcrypt.compare(code, user.resetCodeHash);
-
-    if (!isValidCode) {
-      return res.status(400).json({ error: "Code invalide" });
-    }
+    const result = await checkCode(normalizedEmail, req.body.code, RESET_FIELDS);
+    if (result?.status !== 'ok') return codeRefused(res, result);
+    const { user } = result;
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
     user.resetCodeHash = null;
     user.resetCodeExpire = null;
+    user.resetCodeAttempts = 0;
+    // Le code reçu prouve que l'adresse appartient à la personne ; on lève aussi un verrouillage éventuel
+    user.emailVerified = true;
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    // Toutes les sessions ouvertes avant la réinitialisation sont fermées
+    user.sessionVersion = (user.sessionVersion || 0) + 1;
 
     await user.save();
 
@@ -406,26 +445,15 @@ exports.resetPassword = async (req, res) => {
 // POST /auth/verify-reset-code — vérifie le code sans encore changer le mot de passe (étape intermédiaire UI)
 exports.verifyResetCode = async (req, res) => {
   try {
-    const { email, code } = req.body;
-    const normalizedEmail = email?.trim().toLowerCase();
-
-    if (!normalizedEmail || !code) {
+    const normalizedEmail = normalizeEmail(req.body?.email);
+    if (!normalizedEmail || !req.body?.code) {
       return res.status(400).json({ message: "Données manquantes" });
     }
 
-    const user = await User.findOne({
-      email: normalizedEmail,
-      resetCodeExpire: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: "Code invalide ou expiré" });
-    }
-
-    const isValid = await bcrypt.compare(code, user.resetCodeHash);
-    if (!isValid) {
-      return res.status(400).json({ message: "Code invalide" });
-    }
+    const result = await checkCode(normalizedEmail, req.body.code, RESET_FIELDS);
+    if (result?.status !== 'ok') return codeRefused(res, result);
+    // Bon code : l'essai n'est pas décompté, l'étape suivante (nouveau mot de passe) le revérifie
+    await User.updateOne({ _id: result.user._id }, { $set: { resetCodeAttempts: 0 } });
 
     return res.json({ message: "Code valide" });
   } catch (err) {
@@ -441,30 +469,19 @@ exports.verifyResetCode = async (req, res) => {
 // POST /auth/verify-email — valide le code reçu par email et marque le compte comme vérifié
 exports.verifyEmail = async (req, res) => {
   try {
-    const { email, code } = req.body;
-    const normalizedEmail = email?.trim().toLowerCase();
-
-    if (!normalizedEmail || !code) {
+    const normalizedEmail = normalizeEmail(req.body?.email);
+    if (!normalizedEmail || !req.body?.code) {
       return res.status(400).json({ message: "Données manquantes" });
     }
 
-    const user = await User.findOne({
-      email: normalizedEmail,
-      emailVerificationExpire: { $gt: Date.now() },
-    });
-
-    if (!user || !user.emailVerificationCodeHash) {
-      return res.status(400).json({ message: "Code invalide ou expiré" });
-    }
-
-    const isValid = await bcrypt.compare(code, user.emailVerificationCodeHash);
-    if (!isValid) {
-      return res.status(400).json({ message: "Code invalide" });
-    }
+    const result = await checkCode(normalizedEmail, req.body.code, VERIFY_FIELDS);
+    if (result?.status !== 'ok') return codeRefused(res, result);
+    const { user } = result;
 
     user.emailVerified = true;
     user.emailVerificationCodeHash = null;
     user.emailVerificationExpire = null;
+    user.emailVerificationAttempts = 0;
     await user.save();
 
     return res.json({ message: "Email vérifié avec succès." });
@@ -478,11 +495,10 @@ exports.verifyEmail = async (req, res) => {
 // RENVOI DU CODE DE VÉRIFICATION
 // ==============================
 
-// POST /auth/resend-verification — renvoie un code si le compte existe et n'est pas encore vérifié
+// POST /auth/resend-verification-email — renvoie un code si le compte existe et n'est pas encore vérifié
 exports.resendVerificationEmail = async (req, res) => {
   try {
-    const { email } = req.body;
-    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(req.body?.email);
 
     if (!normalizedEmail) {
       return res.status(400).json({ message: "Email requis" });
@@ -490,7 +506,7 @@ exports.resendVerificationEmail = async (req, res) => {
 
     const user = await User.findOne({ email: normalizedEmail });
 
-    if (user && !user.emailVerified) {
+    if (user && !user.emailVerified && !sentRecently(user.emailVerificationExpire, user.emailVerificationAttempts)) {
       const verificationCode = await assignEmailVerificationCode(user);
       await user.save();
       await sendVerificationEmail(user, verificationCode);

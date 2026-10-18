@@ -16,7 +16,8 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   const [k, v] = a.replace(/^--/, '').split('=');
   return [k, v ?? true];
 }));
-const WEBHOOK_URL = args['webhook-url'] || 'https://hive-app.ch/api/billing/webhook';
+// L'API tourne sur Render (le site statique hive-app.ch ne relaie pas /api) : c'est elle que Stripe doit joindre
+const WEBHOOK_URL = args['webhook-url'] || 'https://hive-1-bkab.onrender.com/api/billing/webhook';
 const EVENTS = [
   'checkout.session.completed',
   'customer.subscription.created',
@@ -26,16 +27,18 @@ const EVENTS = [
 ];
 
 const key = process.env.STRIPE_SECRET_KEY || '';
-if (!/^sk_(test|live)_/.test(key) || key.includes('replace')) {
+// Clé secrète (sk_…) ou restreinte (rk_…, « accès complet sauf opérations sensibles »)
+if (!/^[sr]k_(test|live)_/.test(key) || key.includes('replace')) {
   console.error('✗ Ajoute d\'abord ta clé secrète dans .env : STRIPE_SECRET_KEY=sk_test_…');
   process.exit(1);
 }
-if (key.startsWith('sk_live_') && !args.live) {
+const isLive = /^[sr]k_live_/.test(key);
+if (isLive && !args.live) {
   console.error('✗ Clé LIVE détectée. Relance avec --live si c\'est voulu (sinon utilise sk_test_…).');
   process.exit(1);
 }
 const stripe = Stripe(key);
-const mode = key.startsWith('sk_live_') ? 'LIVE' : 'test';
+const mode = isLive ? 'LIVE' : 'test';
 
 /* Remplace ou ajoute des variables dans .env, après sauvegarde */
 function writeEnv(values) {

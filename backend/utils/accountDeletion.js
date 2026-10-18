@@ -17,6 +17,7 @@ const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 const Rating = require('../models/Rating');
 const User = require('../models/User');
+const UserAvatar = require('../models/UserAvatar');
 const { getStripe } = require('./billing');
 
 const ACTIVE_STATUSES = ['active', 'trialing', 'past_due', 'incomplete', 'unpaid'];
@@ -86,6 +87,7 @@ async function deleteUserAccount(user) {
     ProjectRequest.deleteMany({ $or: [{ senderId: userId }, { projectOwnerId: userId }] }),
     ProjectHistory.deleteMany({ userId }),
     Notification.deleteMany({ userId }),
+    UserAvatar.deleteOne({ userId }),
     Rating.deleteMany({ $or: [{ raterId: userId }, { targetType: 'user', targetId: userId }] }),
   ]);
 

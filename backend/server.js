@@ -4,7 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const path = require('path');
-const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const client = require('prom-client');
 const { Server } = require('socket.io');
 const { connectDB, closeDB } = require('./db');
@@ -17,6 +17,8 @@ const ProjectRequest = require('./models/ProjectRequest');
 const { containsProfanity } = require('./utils/profanityFilter');
 const { notifyNewMessage } = require('./utils/messageEmails');
 const { populateMessage } = require('./utils/messagePopulate');
+const { resolveSession } = require('./utils/session');
+const { migrateInlineAvatars } = require('./utils/avatars');
 const { registrationsTotal, projectsCreatedTotal, projectsClosedTotal, joinRequestsTotal, messagesSentTotal, socketConnectionsActive } = require('./metric');
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
@@ -25,12 +27,26 @@ const app = express();
 const httpServer = http.createServer(app);
 const PORT = process.env.PORT || 5050;
 
+// Derrière Cloudflare + le proxy Render : req.ip et req.protocol viennent des en-têtes du proxy
+// (voir aussi middlewares/rateLimiter.js, qui lit CF-Connecting-IP).
+app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1));
+
 // ==============================
 // Métriques Prometheus
 // ==============================
 client.collectDefaultMetrics();
 
-app.get('/metrics', async (_req, res) => {
+/* Métriques internes (nombre de comptes, connexions, projets…) : jamais publiques.
+   Accès avec METRICS_TOKEN (Authorization: Bearer …), ou depuis le réseau interne sans proxy
+   (Prometheus du docker-compose local). En production, toute requête passe par le proxy. */
+const isPrivateAddress = (ip = '') => /^(::ffff:)?(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)|^::1$/.test(ip);
+app.get('/metrics', async (req, res) => {
+  const token = process.env.METRICS_TOKEN;
+  const viaProxy = !!(req.headers['x-forwarded-for'] || req.headers['cf-connecting-ip']);
+  const allowed = token
+    ? req.headers.authorization === `Bearer ${token}`
+    : !viaProxy && isPrivateAddress(req.socket.remoteAddress);
+  if (!allowed) return res.status(404).json({ message: 'Route introuvable' });
   res.set('Content-Type', client.register.contentType);
   res.end(await client.register.metrics());
 });
@@ -75,6 +91,17 @@ app.use('/api/seo', seoRoutes);
 app.get('/health', (_req, res) => res.send('OK'));
 app.get('/', (_req, res) => res.send('API Hive en ligne'));
 
+// Route inconnue et erreurs : toujours du JSON, jamais de trace serveur (chemins, pile d'appels)
+app.use((_req, res) => res.status(404).json({ message: 'Route introuvable' }));
+app.use((err, req, res, _next) => {
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ message: 'Requête invalide.' });
+  if (err.type === 'entity.too.large') return res.status(413).json({ message: 'Requête trop volumineuse.' });
+  if (err.name === 'CastError') return res.status(404).json({ message: 'Ressource introuvable' });
+  if (err.name === 'ValidationError') return res.status(400).json({ message: 'Données invalides.' });
+  console.error(`${req.method} ${req.originalUrl} :`, err);
+  return res.status(500).json({ message: 'Erreur serveur' });
+});
+
 // ==============================
 // Socket.io — Messagerie temps réel
 // ==============================
@@ -84,17 +111,23 @@ const io = new Server(httpServer, {
 
 app.set('io', io);
 
-io.use((socket, next) => {
-  const token = socket.handshake.auth?.token;
-  if (!token) return next(new Error('Unauthorized'));
+// Même contrôle que l'API : jeton valide, compte existant, session non révoquée
+io.use(async (socket, next) => {
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = payload.id;
-    next();
+    const session = await resolveSession(socket.handshake.auth?.token);
+    if (!session) return next(new Error('Unauthorized'));
+    socket.userId = session.id;
+    return next();
   } catch {
-    next(new Error('Unauthorized'));
+    return next(new Error('Unauthorized'));
   }
 });
+
+const isId = (value) => mongoose.isValidObjectId(value) && /^[a-f0-9]{24}$/i.test(String(value));
+const MAX_CONTENT = 2000;
+// Anti-spam : au plus 20 messages par 10 secondes et par connexion
+const SOCKET_MSG_LIMIT = Number(process.env.SOCKET_MSG_LIMIT || 20);
+const SOCKET_MSG_WINDOW_MS = 10 * 1000;
 
 
 io.on('connection', (socket) => {
@@ -103,10 +136,24 @@ io.on('connection', (socket) => {
 
   socket.join(`user:${socket.userId}`);
 
-  // Rejoindre les conversations de groupe existantes
-  Conversation.find({ participants: socket.userId })
-    .then(convs => convs.forEach(c => socket.join(`conv:${c._id}`)))
-    .catch(console.error);
+  let sentAt = [];
+  const allowMessage = () => {
+    const now = Date.now();
+    sentAt = sentAt.filter((t) => now - t < SOCKET_MSG_WINDOW_MS);
+    if (sentAt.length >= SOCKET_MSG_LIMIT) {
+      socket.emit('message_error', { message: 'Tu envoies beaucoup de messages : patiente quelques secondes.' });
+      return false;
+    }
+    sentAt.push(now);
+    return true;
+  };
+
+  /* Contenu de message : texte non vide, 2000 caractères au plus, sans grossièretés */
+  const contentError = (content) => {
+    if (content.trim().length > MAX_CONTENT) return `Message trop long (${MAX_CONTENT} caractères au maximum).`;
+    if (containsProfanity(content)) return 'Message contient des mots inappropriés.';
+    return null;
+  };
 
   // Message cité : doit appartenir à la même conversation (DM entre les deux mêmes personnes ou même groupe)
   const validReplyTo = async (replyTo, filter) => {
@@ -115,22 +162,38 @@ io.on('connection', (socket) => {
     return original ? original._id : null;
   };
 
-  socket.on('send_message', async ({ to, content, replyTo }) => {
-    if (!to || !content?.trim()) return;
-    if (to === socket.userId) return;
-
-    if (containsProfanity(content)) {
-      socket.emit('message_error', { message: 'Message contient des mots inappropriés.' });
+  socket.on('send_message', async ({ to, content, replyTo } = {}) => {
+    if (typeof content !== 'string' || !content.trim()) return;
+    if (!isId(to)) {
+      socket.emit('message_error', { message: 'Destinataire invalide.' });
       return;
     }
+    if (String(to) === socket.userId) return;
+    const invalid = contentError(content);
+    if (invalid) {
+      socket.emit('message_error', { message: invalid });
+      return;
+    }
+    if (!allowMessage()) return;
 
     try {
       const [receiver, sender] = await Promise.all([
         User.findById(to).select('blockedUsers'),
         User.findById(socket.userId).select('blockedUsers'),
       ]);
-      if (receiver?.blockedUsers?.map(String).includes(socket.userId)) return;
-      if (sender?.blockedUsers?.map(String).includes(to.toString())) return;
+      // Sans retour, l'expéditeur croirait son message parti : on l'informe, sans détailler un blocage subi
+      if (!receiver) {
+        socket.emit('message_error', { message: 'Ce compte n’existe plus.', to: String(to) });
+        return;
+      }
+      if (sender?.blockedUsers?.map(String).includes(String(to))) {
+        socket.emit('message_error', { message: 'Tu as bloqué cette personne : débloque-la pour lui écrire.', to: String(to) });
+        return;
+      }
+      if (receiver.blockedUsers?.map(String).includes(socket.userId)) {
+        socket.emit('message_error', { message: 'Ce message n’a pas pu être distribué.', to: String(to) });
+        return;
+      }
       const replyId = await validReplyTo(replyTo, {
         conversationId: null,
         $or: [
@@ -165,26 +228,32 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('typing', ({ to }) => {
-    if (to && to !== socket.userId) {
+  socket.on('typing', ({ to } = {}) => {
+    if (isId(to) && String(to) !== socket.userId) {
       io.to(`user:${to}`).emit('typing', { from: socket.userId });
     }
   });
-  socket.on('typing_group', ({ conversationId }) => {
-    if (conversationId) {
-      socket.to(`conv:${conversationId}`).emit('typing_group', { from: socket.userId, conversationId });
+  // Indicateur de saisie de groupe : envoyé aux membres actuels seulement (pas à un ancien membre)
+  socket.on('typing_group', async ({ conversationId } = {}) => {
+    if (!isId(conversationId)) return;
+    try {
+      const conv = await Conversation.findOne({ _id: conversationId, participants: socket.userId }).select('participants').lean();
+      conv?.participants.forEach((uid) => {
+        if (String(uid) !== socket.userId) io.to(`user:${uid}`).emit('typing_group', { from: socket.userId, conversationId });
+      });
+    } catch (err) {
+      console.error('typing_group error:', err.message);
     }
-  });
-  socket.on('join_conversation', (convId) => {
-    socket.join(`conv:${convId}`);
   });
 
-  socket.on('send_group_message', async ({ conversationId, content, replyTo }) => {
-    if (!conversationId || !content?.trim()) return;
-    if (containsProfanity(content)) {
-      socket.emit('message_error', { message: 'Message contient des mots inappropriés.' });
+  socket.on('send_group_message', async ({ conversationId, content, replyTo } = {}) => {
+    if (!isId(conversationId) || typeof content !== 'string' || !content.trim()) return;
+    const invalid = contentError(content);
+    if (invalid) {
+      socket.emit('message_error', { message: invalid });
       return;
     }
+    if (!allowMessage()) return;
     try {
       const conv = await Conversation.findById(conversationId);
       if (!conv || !conv.participants.map(String).includes(socket.userId)) return;
@@ -252,6 +321,7 @@ async function initMetricsFromDB() {
   try {
     await connectDB(process.env.MONGO_URI);
     await initMetricsFromDB();
+    migrateInlineAvatars().catch((err) => console.error('[avatars] migration :', err.message));
     httpServer.listen(PORT, () =>
       console.log(`Serveur Hive démarré sur http://localhost:${PORT}`)
     );

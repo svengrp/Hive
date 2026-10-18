@@ -1,9 +1,14 @@
+const mongoose     = require('mongoose');
 const Message      = require('../models/Message');
 const Conversation = require('../models/Conversation');
 const Notification = require('../models/Notification');
 const User         = require('../models/User');
 
 const { POPULATE_FIELDS, populateMessage, REACTIONS } = require('../utils/messagePopulate');
+const { containsProfanity } = require('../utils/profanityFilter');
+
+const isId = (value) => mongoose.isValidObjectId(value) && /^[a-f0-9]{24}$/i.test(String(value));
+const MAX_CONTENT = 2000;
 
 const HISTORY_LIMIT = 200;
 
@@ -32,39 +37,43 @@ const emitTo = (req, userIds, event, payload) => {
 // ==============================
 
 // GET /messages/conversations — liste toutes les conversations DM avec le dernier message et le nombre de non-lus
+/* Une ligne par interlocuteur : dernier message et nombre de non-lus, calculés par la base
+   (avant : tous les messages de la personne étaient chargés puis dédupliqués en mémoire). */
+async function dmThreads(me, { only, exclude = [] }) {
+  const meId = new mongoose.Types.ObjectId(me);
+  const partnerFilter = only ? { $in: only } : { $nin: exclude };
+  const rows = await Message.aggregate([
+    { $match: { conversationId: null, receiverId: { $ne: null }, $or: [{ senderId: meId }, { receiverId: meId }] } },
+    { $sort: { createdAt: -1 } },
+    { $group: {
+      _id: { $cond: [{ $eq: ['$senderId', meId] }, '$receiverId', '$senderId'] },
+      lastId: { $first: '$_id' },
+      unread: { $sum: { $cond: [{ $and: [{ $eq: ['$receiverId', meId] }, { $eq: ['$read', false] }] }, 1, 0] } },
+    } },
+    { $match: { _id: partnerFilter } },
+  ]);
+  const lastMessages = await Message.find({ _id: { $in: rows.map((r) => r.lastId) } })
+    .populate('senderId', POPULATE_FIELDS)
+    .populate('receiverId', POPULATE_FIELDS)
+    .sort({ createdAt: -1 });
+  const unreadByLast = new Map(rows.map((r) => [String(r.lastId), r.unread]));
+  return lastMessages
+    // Compte supprimé : populate renvoie null, la conversation n'a plus d'interlocuteur.
+    .filter((msg) => msg.senderId && msg.receiverId)
+    .map((msg) => ({
+      partner: String(msg.senderId._id) === me ? msg.receiverId : msg.senderId,
+      lastMessage: msg,
+      unread: unreadByLast.get(String(msg._id)) || 0,
+    }));
+}
+
 exports.getConversations = async (req, res) => {
   const me = req.user.id;
-  const meUser = await User.findById(me).select('blockedUsers archivedDMs');
-  const blockedIds = meUser.blockedUsers.map(String);
-  const archivedIds = meUser.archivedDMs.map(String);
   try {
-    const messages = await Message.find({
-      $or: [{ senderId: me }, { receiverId: me }],
-      receiverId: { $exists: true, $ne: null },
-      conversationId: null,
-    })
-      .populate('senderId', POPULATE_FIELDS)
-      .populate('receiverId', POPULATE_FIELDS)
-      .sort({ createdAt: -1 });
-
-    // Déduplique par interlocuteur et calcule les non-lus
-    const seen = new Map();
-    for (const msg of messages) {
-      // Compte supprimé : populate renvoie null, la conversation n'a plus d'interlocuteur.
-      if (!msg.senderId || !msg.receiverId) continue;
-      const partner = msg.senderId._id.toString() === me ? msg.receiverId : msg.senderId;
-      const key = partner._id.toString();
-      if (blockedIds.includes(key)) continue;
-      if (archivedIds.includes(key)) continue;
-      if (!seen.has(key)) {
-        seen.set(key, { partner, lastMessage: msg, unread: 0 });
-      }
-      if (!msg.read && msg.receiverId._id.toString() === me) {
-        seen.get(key).unread++;
-      }
-    }
-
-    return res.json([...seen.values()]);
+    const meUser = await User.findById(me).select('blockedUsers archivedDMs').lean();
+    if (!meUser) return res.status(401).json({ message: 'Session expirée' });
+    const threads = await dmThreads(me, { exclude: [...(meUser.blockedUsers || []), ...(meUser.archivedDMs || [])] });
+    return res.json(threads);
   } catch (err) {
     console.error('getConversations error:', err);
     return res.status(500).json({ message: 'Erreur serveur' });
@@ -75,6 +84,7 @@ exports.getConversations = async (req, res) => {
 exports.getMessages = async (req, res) => {
   const me = req.user.id;
   const { userId } = req.params;
+  if (!isId(userId)) return res.status(404).json({ message: 'Conversation introuvable' });
   try {
     const messages = await latestMessages({
       $or: [
@@ -94,6 +104,7 @@ exports.getMessages = async (req, res) => {
 exports.markRead = async (req, res) => {
   const me = req.user.id;
   const { userId } = req.params;
+  if (!isId(userId)) return res.status(404).json({ message: 'Conversation introuvable' });
   try {
     await Message.updateMany(
       { senderId: userId, receiverId: me, read: false },
@@ -110,28 +121,10 @@ exports.markRead = async (req, res) => {
 exports.getArchivedDMs = async (req, res) => {
   const me = req.user.id;
   try {
-    const meUser = await User.findById(me).select('archivedDMs');
-    const archivedIds = meUser.archivedDMs.map(String);
-    if (!archivedIds.length) return res.json([]);
-
-    const messages = await Message.find({
-      $or: [{ senderId: me }, { receiverId: me }],
-      receiverId: { $exists: true, $ne: null },
-      conversationId: null,
-    })
-      .populate('senderId', POPULATE_FIELDS)
-      .populate('receiverId', POPULATE_FIELDS)
-      .sort({ createdAt: -1 });
-
-    const seen = new Map();
-    for (const msg of messages) {
-      if (!msg.senderId || !msg.receiverId) continue; // compte supprimé
-      const partner = msg.senderId._id.toString() === me ? msg.receiverId : msg.senderId;
-      const key = partner._id.toString();
-      if (!archivedIds.includes(key)) continue;
-      if (!seen.has(key)) seen.set(key, { partner, lastMessage: msg });
-    }
-    return res.json([...seen.values()]);
+    const meUser = await User.findById(me).select('archivedDMs').lean();
+    if (!meUser?.archivedDMs?.length) return res.json([]);
+    const threads = await dmThreads(me, { only: meUser.archivedDMs });
+    return res.json(threads.map(({ partner, lastMessage }) => ({ partner, lastMessage })));
   } catch (err) {
     console.error('getArchivedDMs error:', err);
     return res.status(500).json({ message: 'Erreur serveur' });
@@ -142,6 +135,7 @@ exports.getArchivedDMs = async (req, res) => {
 exports.archiveDM = async (req, res) => {
   const me = req.user.id;
   const { userId } = req.params;
+  if (!isId(userId)) return res.status(400).json({ message: 'Utilisateur invalide' });
   try {
     await User.findByIdAndUpdate(me, { $addToSet: { archivedDMs: userId } });
     return res.json({ ok: true });
@@ -154,6 +148,7 @@ exports.archiveDM = async (req, res) => {
 exports.unarchiveDM = async (req, res) => {
   const me = req.user.id;
   const { userId } = req.params;
+  if (!isId(userId)) return res.status(400).json({ message: 'Utilisateur invalide' });
   try {
     await User.findByIdAndUpdate(me, { $pull: { archivedDMs: userId } });
     return res.json({ ok: true });
@@ -166,7 +161,14 @@ exports.unarchiveDM = async (req, res) => {
 exports.getUnreadCount = async (req, res) => {
   const me = req.user.id;
   try {
-    const count = await Message.countDocuments({ receiverId: me, read: false });
+    // Les messages des personnes bloquées n'apparaissent nulle part : ils ne comptent pas
+    const meUser = await User.findById(me).select('blockedUsers').lean();
+    const count = await Message.countDocuments({
+      receiverId: me,
+      read: false,
+      conversationId: null,
+      senderId: { $nin: meUser?.blockedUsers || [] },
+    });
     return res.json({ count });
   } catch (err) {
     console.error('getUnreadCount error:', err);
@@ -227,6 +229,7 @@ exports.getArchivedConversations = async (req, res) => {
 // PUT /messages/group/:convId/archive — archiver une conversation
 exports.archiveConversation = async (req, res) => {
   const me = req.user.id;
+  if (!isId(req.params.convId)) return res.status(404).json({ message: 'Conversation introuvable' });
   try {
     const conv = await Conversation.findOne({ _id: req.params.convId, participants: me });
     if (!conv) return res.status(404).json({ message: 'Conversation introuvable' });
@@ -240,6 +243,7 @@ exports.archiveConversation = async (req, res) => {
 // PUT /messages/group/:convId/unarchive — désarchiver
 exports.unarchiveConversation = async (req, res) => {
   const me = req.user.id;
+  if (!isId(req.params.convId)) return res.status(404).json({ message: 'Conversation introuvable' });
   try {
     const conv = await Conversation.findOne({ _id: req.params.convId, participants: me });
     if (!conv) return res.status(404).json({ message: 'Conversation introuvable' });
@@ -253,6 +257,7 @@ exports.unarchiveConversation = async (req, res) => {
 // DELETE /messages/group/:convId — suppression définitive (seulement si archivée)
 exports.deleteConversation = async (req, res) => {
   const me = req.user.id;
+  if (!isId(req.params.convId)) return res.status(404).json({ message: 'Conversation introuvable' });
   try {
     const conv = await Conversation.findOne({ _id: req.params.convId, participants: me, archivedBy: me });
     if (!conv) return res.status(404).json({ message: 'Conversation introuvable ou non archivée' });
@@ -266,6 +271,7 @@ exports.deleteConversation = async (req, res) => {
 // GET /messages/group/:convId — messages d'une conversation de groupe (accès réservé aux participants)
 exports.getConversationMessages = async (req, res) => {
   const me = req.user.id;
+  if (!isId(req.params.convId)) return res.status(404).json({ message: 'Conversation introuvable' });
   const { convId } = req.params;
   try {
     const conv = await Conversation.findById(convId);
@@ -291,11 +297,17 @@ exports.editMessage = async (req, res) => {
   const { msgId } = req.params;
   const { content } = req.body;
   try {
-    if (!content?.trim()) return res.status(400).json({ message: 'Contenu vide' });
+    if (typeof content !== 'string' || !content.trim()) return res.status(400).json({ message: 'Contenu vide' });
+    if (content.trim().length > MAX_CONTENT) return res.status(400).json({ message: `Message trop long (${MAX_CONTENT} caractères au maximum).` });
+    if (containsProfanity(content)) return res.status(400).json({ message: 'Message contient des mots inappropriés.' });
+    if (!isId(msgId)) return res.status(404).json({ message: 'Message introuvable' });
     const msg = await Message.findById(msgId);
     if (!msg) return res.status(404).json({ message: 'Message introuvable' });
-    if (msg.senderId.toString() !== me) return res.status(403).json({ message: 'Non autorisé' });
+    // Les messages système (« X a rejoint le projet ») portent l'id du membre mais ne lui appartiennent pas
+    if (msg.senderId.toString() !== me || msg.isSystem) return res.status(403).json({ message: 'Non autorisé' });
     if (msg.deleted) return res.status(400).json({ message: 'Message supprimé' });
+    const audience = await audienceOf(msg);
+    if (!audience?.includes(me)) return res.status(403).json({ message: 'Non autorisé' });
     msg.content = content.trim();
     msg.edited = true;
     await msg.save();
@@ -322,10 +334,11 @@ exports.editMessage = async (req, res) => {
 exports.deleteMessage = async (req, res) => {
   const me = req.user.id;
   const { msgId } = req.params;
+  if (!isId(msgId)) return res.status(404).json({ message: 'Message introuvable' });
   try {
     const msg = await Message.findById(msgId);
     if (!msg) return res.status(404).json({ message: 'Message introuvable' });
-    if (msg.senderId.toString() !== me) return res.status(403).json({ message: 'Non autorisé' });
+    if (msg.senderId.toString() !== me || msg.isSystem) return res.status(403).json({ message: 'Non autorisé' });
     msg.deleted = true;
     msg.content = 'Message supprimé';
     await msg.save();
@@ -358,6 +371,7 @@ exports.reactToMessage = async (req, res) => {
   const me = req.user.id;
   const { emoji } = req.body || {};
   if (!REACTIONS.includes(emoji)) return res.status(400).json({ message: 'Réaction non autorisée' });
+  if (!isId(req.params.msgId)) return res.status(404).json({ message: 'Message introuvable' });
   try {
     const msg = await Message.findById(req.params.msgId);
     if (!msg || msg.deleted || msg.isSystem) return res.status(404).json({ message: 'Message introuvable' });
@@ -382,6 +396,7 @@ exports.reactToMessage = async (req, res) => {
 exports.pinMessage = async (req, res) => {
   const me = req.user.id;
   const pinned = !!req.body?.pinned;
+  if (!isId(req.params.msgId)) return res.status(404).json({ message: 'Message introuvable' });
   try {
     const msg = await Message.findById(req.params.msgId);
     if (!msg || msg.deleted || msg.isSystem) return res.status(404).json({ message: 'Message introuvable' });
@@ -406,6 +421,7 @@ exports.pinMessage = async (req, res) => {
 // GET /messages/group/:convId/pinned — messages épinglés d'un groupe (plus récents d'abord)
 exports.getPinnedMessages = async (req, res) => {
   const me = req.user.id;
+  if (!isId(req.params.convId)) return res.status(404).json({ message: 'Conversation introuvable' });
   try {
     const conv = await Conversation.findById(req.params.convId).select('participants');
     if (!conv) return res.status(404).json({ message: 'Conversation introuvable' });
@@ -428,7 +444,10 @@ exports.getPinnedMessages = async (req, res) => {
 exports.blockUser = async (req, res) => {
   const me = req.user.id;
   const { userId } = req.params;
+  if (!isId(userId)) return res.status(400).json({ message: 'Utilisateur invalide' });
+  if (userId === me) return res.status(400).json({ message: 'Tu ne peux pas te bloquer toi-même' });
   try {
+    if (!(await User.exists({ _id: userId }))) return res.status(404).json({ message: 'Utilisateur introuvable' });
     await User.findByIdAndUpdate(me, { $addToSet: { blockedUsers: userId } });
     return res.json({ ok: true });
   } catch (err) {
@@ -440,6 +459,7 @@ exports.blockUser = async (req, res) => {
 exports.unblockUser = async (req, res) => {
   const me = req.user.id;
   const { userId } = req.params;
+  if (!isId(userId)) return res.status(400).json({ message: 'Utilisateur invalide' });
   try {
     await User.findByIdAndUpdate(me, { $pull: { blockedUsers: userId } });
     return res.json({ ok: true });
@@ -479,7 +499,7 @@ exports.markNotificationsRead = async (req, res) => {
 exports.getBlockedUsers = async (req, res) => {
   const me = req.user.id; 
   try{
-    const user = await User.findById(me).populate('blockedUsers', 'displayName firstName lastName avatarUrl _id');
+    const user = await User.findById(me).populate('blockedUsers', 'displayName firstName lastName avatarUrl avatarVersion _id');
     return res.json(user.blockedUsers || []);
   }
   catch(err){

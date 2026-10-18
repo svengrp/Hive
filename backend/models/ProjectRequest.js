@@ -9,7 +9,7 @@ const projectRequestSchema = new Schema({
   message:        { type: String, maxlength: 500, default: '' },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'declined', 'expired'],
+    enum: ['pending', 'accepted', 'declined', 'expired', 'kicked'],
     default: 'pending',
     index: true,
   },
@@ -18,5 +18,7 @@ const projectRequestSchema = new Schema({
     default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   },
 }, { timestamps: true });
+
+projectRequestSchema.index({ projectId: 1, senderId: 1, createdAt: -1 });
 
 module.exports = model('ProjectRequest', projectRequestSchema);

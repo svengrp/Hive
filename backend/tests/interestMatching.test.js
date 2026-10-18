@@ -21,7 +21,7 @@ const fakeRes = () => {
 // Requête Mongoose simulée : chaînable, puis attendue comme une promesse
 const fakeQuery = (docs) => {
   const query = {
-    populate: () => query, sort: () => query, skip: () => query, limit: () => query,
+    populate: () => query, sort: () => query, skip: () => query, limit: () => query, lean: () => query,
     then: (resolve, reject) => Promise.resolve(docs).then(resolve, reject),
   };
   return query;

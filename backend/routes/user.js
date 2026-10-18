@@ -2,6 +2,7 @@
    /ratings doit être déclaré avant /:id pour éviter d'être interprété comme un ID.
    Les routes de profil public (:id, :id/projects) sont accessibles sans token. */
 const router = require("express").Router();
+const { serveAvatar } = require("../utils/avatars");
 const requireAuth = require("../middlewares/requireAuth");
 const { getPublicProfile, getPublicProjects, updateInfos, changePassword, getUserRatings, updateNotificationPrefs, exportMyData, deleteMyAccount, saveOnboarding } = require("../controllers/user.controller");
 
@@ -10,6 +11,7 @@ router.get("/ratings", requireAuth, getUserRatings);
 router.get("/me/export", requireAuth, exportMyData);
 router.delete("/me", requireAuth, deleteMyAccount);
 router.put("/notification-prefs", requireAuth, updateNotificationPrefs);
+router.get("/:id/avatar", serveAvatar);
 router.get("/:id/projects", getPublicProjects);
 router.get("/:id", getPublicProfile);
 router.put("/profile", requireAuth, updateInfos);

@@ -9,25 +9,29 @@ const User = require('../models/User');
 const THROTTLE_MS = 15 * 60 * 1000;
 const PREVIEW_LENGTH = 160;
 
-const escapeHtml = (text) => String(text || '')
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+const { renderEmail, escapeHtml, front } = require('./emailLayout');
 
 const nameOf = (user) => user?.displayName || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Quelqu’un';
 
 function buildEmail({ recipient, senderName, title, preview, url }) {
-  const settingsUrl = `${process.env.FRONT_URL || ''}/profile`;
+  const settingsUrl = `${front()}/profile`;
+  const where = title ? ` dans <strong>${escapeHtml(title)}</strong>` : '';
+  const { html, text } = renderEmail({
+    preheader: `${senderName} : ${preview}`,
+    heading: title ? `Nouveau message dans ${title}` : `Nouveau message de ${senderName}`,
+    paragraphs: [
+      `Bonjour ${escapeHtml(nameOf(recipient))},`,
+      `<strong>${escapeHtml(senderName)}</strong> t’a écrit${where} :`,
+    ],
+    quote: preview,
+    cta: { url, label: 'Répondre sur Hive' },
+    footer: `Tu reçois cet email car tu n’étais pas connecté·e. <a href="${escapeHtml(settingsUrl)}" style="color:inherit">Gérer mes notifications</a>`,
+    text: `Bonjour ${nameOf(recipient)},\n\n${senderName} t’a écrit${title ? ` dans « ${title} »` : ''} :\n\n${preview}\n\nRépondre : ${url}\nGérer mes notifications : ${settingsUrl}`,
+  });
   return {
     subject: title ? `${senderName} dans ${title}` : `Nouveau message de ${senderName}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;color:#2b2016">
-        <p style="margin:0 0 16px">Bonjour ${escapeHtml(nameOf(recipient))},</p>
-        <p style="margin:0 0 12px"><strong>${escapeHtml(senderName)}</strong> t’a écrit${title ? ` dans <strong>${escapeHtml(title)}</strong>` : ''} :</p>
-        <blockquote style="margin:0 0 20px;padding:12px 16px;background:#faf6f0;border-radius:10px;color:#4a3b2c">${escapeHtml(preview)}</blockquote>
-        <a href="${url}" style="display:inline-block;background:#a0560d;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold">Répondre sur Hive</a>
-        <hr style="border:none;border-top:1px solid #eee;margin:24px 0 12px"/>
-        <p style="color:#888;font-size:12px;margin:0">Tu reçois cet email car tu n’étais pas connecté·e. <a href="${settingsUrl}" style="color:#888">Gérer mes notifications</a></p>
-      </div>`,
+    html,
+    text,
   };
 }
 
@@ -50,7 +54,7 @@ async function isOnline(io, userId) {
 async function notifyNewMessage({ io, recipientIds, sender, key, title, content, path }) {
   const now = Date.now();
   const preview = content.length > PREVIEW_LENGTH ? `${content.slice(0, PREVIEW_LENGTH)}…` : content;
-  const url = `${process.env.FRONT_URL || ''}${path}`;
+  const url = `${front()}${path}`;
   const senderName = nameOf(sender);
 
   await Promise.all(recipientIds.map(async (id) => {
@@ -61,12 +65,13 @@ async function notifyNewMessage({ io, recipientIds, sender, key, title, content,
       const last = recipient.messageEmailSentAt?.get(key);
       if (last && now - new Date(last).getTime() < THROTTLE_MS) return;
 
-      const { subject, html } = buildEmail({ recipient, senderName, title, preview, url });
+      const { subject, html, text } = buildEmail({ recipient, senderName, title, preview, url });
       await transporter.sendMail({
         from: mailFrom(),
         to: recipient.email,
         subject,
         html,
+        text,
       });
       await User.updateOne({ _id: id }, { $set: { [`messageEmailSentAt.${key}`]: new Date(now) } });
     } catch (err) {

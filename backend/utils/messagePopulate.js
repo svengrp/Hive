@@ -1,5 +1,5 @@
 /* Population commune des messages : expéditeur/destinataire et message cité (réponse). */
-const POPULATE_FIELDS = 'displayName firstName lastName avatarUrl _id';
+const POPULATE_FIELDS = 'displayName firstName lastName avatarUrl avatarVersion _id';
 
 const REPLY_POPULATE = {
   path: 'replyTo',

@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Project = require('../models/Project');
-const { deleteUserAccount } = require('../utils/accountDeletion');
+const { deleteUserAccount, deleteProjectsData } = require('../utils/accountDeletion');
 
 const SENSITIVE_FIELDS = '-passwordHash -resetCodeHash -resetCodeExpire -emailVerificationCodeHash -emailVerificationExpire';
 
@@ -39,6 +39,7 @@ exports.changeRole = async (req, res) => {
   try {
     const { role } = req.body;
     if (!['user', 'admin'].includes(role)) return res.status(400).json({ message: 'Rôle invalide' });
+    if (req.params.id === req.user.id && role !== 'admin') return res.status(400).json({ message: 'Tu ne peux pas retirer tes propres droits.' });
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select(SENSITIVE_FIELDS);
     if (!user) return res.status(404).json({ message: 'Utilisateur introuvable' });
     return res.status(200).json(user);
@@ -70,7 +71,8 @@ exports.deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Projet introuvable' });
-    await project.deleteOne();
+    // Même nettoyage complet que la suppression par le créateur (groupe, messages, candidatures…)
+    await deleteProjectsData([project._id]);
     return res.status(200).json({ message: 'Projet supprimé' });
   } catch (err) {
     console.error('Admin deleteProject error:', err);
