@@ -1,0 +1,32 @@
+/* Renard du parcours (OnboardingFox.jsx) : placé par transform dans le parcours,
+   au-dessus du contenu et de la barre du bas */
+.fox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  width: 84px;
+  height: 100px;
+  transition: opacity var(--dur-slow) var(--ease-out);
+  will-change: transform;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 600px) {
+  .fox {
+    width: 68px;
+    height: 81px;
+  }
+}

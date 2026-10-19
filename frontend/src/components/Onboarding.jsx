@@ -10,12 +10,13 @@ import {
   locatePlace, readOnboarding, shouldShowOnboarding, syncOnboarding, writeOnboarding,
 } from "../lib/onboarding";
 import logoHive from "../img/logoHive.svg";
-import HiveFacade from "./HiveFacade";
 import InterestPicker from "./InterestPicker";
 import classes from "./Onboarding.module.css";
 
 // Carte chargée seulement à l'écran final
 const OnboardingMap = lazy(() => import("./OnboardingMap"));
+// Renard 3D qui accompagne le parcours : three.js n'est chargé que pour lui
+const OnboardingFox = lazy(() => import("./OnboardingFox"));
 
 const GOAL_ICONS = { join: Search, launch: Rocket, both: Compass };
 
@@ -40,6 +41,7 @@ export default function Onboarding() {
   const [open, setOpen] = useState(() => shouldShowOnboarding({ user, pathname, state: readOnboarding() }));
   const headingRef = useRef(null);
   const nameInputRef = useRef(null);
+  const foxRef = useRef(null);
 
   const language = i18n.language?.startsWith("fr") ? "fr" : "en";
   const countries = useMemo(() => getCountries(language), [language]);
@@ -180,6 +182,13 @@ export default function Onboarding() {
   }, [isFinale, state.city, state.country, language]);
 
   const handleCount = useCallback((count) => setVisibleCount(count), []);
+
+  // Écran final : le renard saute de joie une fois posé à côté des boutons
+  useEffect(() => {
+    if (!isFinale) return undefined;
+    const id = setTimeout(() => foxRef.current?.cheer(), 1400);
+    return () => clearTimeout(id);
+  }, [isFinale]);
 
   if (!open) return null;
 
@@ -334,7 +343,7 @@ export default function Onboarding() {
           </div>
           <div className={classes.scrim} aria-hidden="true" />
 
-          <div className={classes.finalePanel}>
+          <div className={classes.finalePanel} data-fox-perch-mobile="">
             <p className={`${classes.eyebrow} ${classes.reveal}`} style={{ "--d": "150ms" }}>
               <span className={classes.eyebrowCheck} aria-hidden="true"><Check size={12} strokeWidth={3} /></span>
               {t("onboarding.final.eyebrow")}
@@ -391,7 +400,7 @@ export default function Onboarding() {
               <p className={classes.readinessNote}>{t("onboarding.final.readinessNote")}</p>
             </div>
 
-            <div className={`${classes.accountActions} ${classes.reveal}`} style={{ "--d": "1250ms" }}>
+            <div className={`${classes.accountActions} ${classes.reveal}`} style={{ "--d": "1250ms" }} data-fox-perch="beside">
               <button type="button" className={classes.primary} onClick={() => finish("/register")}>
                 {t("onboarding.account.create")}
               </button>
@@ -405,11 +414,7 @@ export default function Onboarding() {
           </div>
         </main>
       ) : (
-        <main
-          className={`${classes.body} ${state.step === "name" ? classes.bodyFacade : ""}`}
-          ref={bodyRef}
-          onScroll={measureBody}
-        >
+        <main className={classes.body} ref={bodyRef} onScroll={measureBody}>
           <div className={classes.panel} key={state.step}>
             {state.step === "name" && (
               <form
@@ -433,7 +438,12 @@ export default function Onboarding() {
                   </span>
                 </h1>
                 <p className={`${classes.lead} ${classes.reveal}`} style={{ "--d": "380ms" }}>{t("onboarding.name.lead")}</p>
-                <label className={`${classes.field} ${classes.nameField} ${classes.reveal}`} style={{ "--d": "480ms" }}>
+                <label
+                  className={`${classes.field} ${classes.nameField} ${classes.reveal}`}
+                  style={{ "--d": "480ms" }}
+                  data-fox-perch="beside"
+                  data-fox-x="0.88"
+                >
                   <span className={classes.fieldLabel}>{t("onboarding.name.label")}</span>
                   <input
                     ref={nameInputRef}
@@ -445,7 +455,10 @@ export default function Onboarding() {
                     enterKeyHint="next"
                     spellCheck={false}
                     placeholder={t("onboarding.name.placeholder")}
-                    onChange={(e) => update({ firstName: e.target.value })}
+                    onChange={(e) => {
+                      update({ firstName: e.target.value });
+                      foxRef.current?.typing(e.target, { cheerOnPause: true });
+                    }}
                   />
                 </label>
               </form>
@@ -460,10 +473,14 @@ export default function Onboarding() {
                 <p className="sr-only" aria-live="polite">
                   {t("onboarding.interests.counter", { count: state.interests.length, max: MAX_INTERESTS })}
                 </p>
-                <div className={classes.picker}>
+                <div className={classes.picker} data-fox-perch="besideTop" data-fox-x="0.1">
                   <InterestPicker
                     value={state.interests}
-                    onChange={(interests) => update({ interests })}
+                    onChange={(interests) => {
+                      if (interests.length === MAX_INTERESTS) foxRef.current?.cheer();
+                      else if (interests.length > state.interests.length) foxRef.current?.nod();
+                      update({ interests });
+                    }}
                     labelledBy="onboarding-title"
                   />
                 </div>
@@ -476,13 +493,16 @@ export default function Onboarding() {
                   {t("onboarding.location.title")}
                 </h1>
                 <p className={classes.lead}>{t("onboarding.location.lead")}</p>
-                <div className={classes.fields}>
+                <div className={classes.fields} data-fox-perch="beside" data-fox-x="0.5">
                   <label className={classes.field}>
                     <span className={classes.fieldLabel}>{t("onboarding.location.country")}</span>
                     <select
                       className={classes.input}
                       value={knownCodes.has(state.country) ? state.country : ""}
-                      onChange={(e) => update({ country: e.target.value })}
+                      onChange={(e) => {
+                        update({ country: e.target.value });
+                        foxRef.current?.nod();
+                      }}
                     >
                       <option value="" disabled>{t("onboarding.location.choose")}</option>
                       <optgroup label={t("onboarding.location.suggested")}>
@@ -505,7 +525,10 @@ export default function Onboarding() {
                       maxLength={80}
                       autoComplete="address-level2"
                       placeholder={t("onboarding.location.cityPlaceholder")}
-                      onChange={(e) => update({ city: e.target.value })}
+                      onChange={(e) => {
+                        update({ city: e.target.value });
+                        foxRef.current?.typing(e.target);
+                      }}
                     />
                   </label>
                 </div>
@@ -518,7 +541,14 @@ export default function Onboarding() {
                   {t("onboarding.goal.title")}
                 </h1>
                 <p className={classes.lead}>{t("onboarding.goal.lead")}</p>
-                <div className={classes.choices} role="radiogroup" aria-labelledby="onboarding-title">
+                {/* Le renard se pose à côté de l'objectif choisi (au-dessus de la liste tant qu'il n'y en a pas) */}
+                <div
+                  className={classes.choices}
+                  role="radiogroup"
+                  aria-labelledby="onboarding-title"
+                  data-fox-perch={state.goal ? undefined : "besideTop"}
+                  data-fox-x="0.88"
+                >
                   {GOALS.map((goal) => {
                     const Icon = GOAL_ICONS[goal];
                     const selected = state.goal === goal;
@@ -529,7 +559,12 @@ export default function Onboarding() {
                         role="radio"
                         aria-checked={selected}
                         className={`${classes.choice} ${selected ? classes.choiceSelected : ""}`}
-                        onClick={() => update({ goal })}
+                        data-fox-perch={selected ? "beside" : undefined}
+                        data-fox-x="0.88"
+                        onClick={() => {
+                          if (!selected) foxRef.current?.nod();
+                          update({ goal });
+                        }}
                       >
                         <span className={classes.choiceIcon} aria-hidden="true"><Icon size={20} strokeWidth={1.75} /></span>
                         <span className={classes.choiceText}>
@@ -544,17 +579,12 @@ export default function Onboarding() {
               </>
             )}
           </div>
-          {state.step === "name" && (
-            <div className={classes.facade}>
-              <HiveFacade inputRef={nameInputRef} value={state.firstName} />
-            </div>
-          )}
         </main>
       )}
 
       {!isFinale && (
         <footer className={`${classes.footer} ${moreBelow ? classes.footerRaised : ""}`}>
-          <div className={classes.footerInner}>
+          <div className={classes.footerInner} data-fox-floor="">
             {stepIndex > 0 ? (
               <button type="button" className={classes.back} onClick={back}>
                 <ArrowLeft size={16} aria-hidden="true" />
@@ -572,6 +602,10 @@ export default function Onboarding() {
           </div>
         </footer>
       )}
+
+      <Suspense fallback={null}>
+        <OnboardingFox ref={foxRef} hidden={compact} />
+      </Suspense>
     </div>
   );
 }

@@ -789,23 +789,6 @@ button.stepButton:hover .stepLabel {
   font-size: 17px;
 }
 
-/* Façade cinétique sous le formulaire (HiveFacade) : elle prend la place libre,
-   d'un bord à l'autre de l'écran, jusqu'à la barre du bas */
-.bodyFacade {
-  display: flex;
-  flex-direction: column;
-}
-
-.facade {
-  flex: 1;
-  min-height: 160px;
-  margin: 32px -24px -32px;
-}
-
-.compact .facade {
-  display: none;
-}
-
 /* ---------- Écran final : la carte, le texte posé dessus ---------- */
 .finale {
   position: relative;
@@ -1156,18 +1139,6 @@ button.stepButton:hover .stepLabel {
 
   .nameField {
     margin-top: 28px;
-  }
-
-  .facade {
-    min-height: 120px;
-    margin: 20px -16px -20px;
-  }
-}
-
-/* Petits téléphones : le titre et le champ passent avant la façade */
-@media (max-width: 600px) and (max-height: 600px) {
-  .facade {
-    display: none;
   }
 }
 
