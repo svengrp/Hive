@@ -19,6 +19,8 @@ const CREAM = "#fff1e0";
 const INNER_EAR = "#ffd6bd";
 const SOCK = "#3a2216";
 const INK = "#24150e";
+// Le foulard porte le bleu de Hive (celui des boutons)
+const SCARF = "#2f6fe4";
 
 const MOBILE = 600;
 const TYPING_FOCUS = 1500;
@@ -79,6 +81,7 @@ function buildFox() {
     sock: toon({ color: SOCK }),
     tail: toon({ vertexColors: true }),
     ink: toon({ color: INK }),
+    scarf: toon({ color: SCARF }),
     glint: new THREE.MeshBasicMaterial({ color: "#ffffff" }),
   };
   materials.steps = steps;
@@ -107,6 +110,20 @@ function buildFox() {
     body.add(leg);
     blob(materials.sock, [0.13, 0.09, 0.17], [x, 0.08, 0.42], body);
   });
+
+  // Foulard : un tour de cou sous la tête et une pointe de bandana sur le poitrail
+  const collar = new THREE.Mesh(new THREE.TorusGeometry(0.49, 0.095, 16, 48), materials.scarf);
+  collar.rotation.x = Math.PI / 2;
+  collar.scale.set(1, 0.93, 1);
+  collar.position.y = 0.98;
+  const triangle = new THREE.Shape([new THREE.Vector2(-0.22, 0), new THREE.Vector2(0.22, 0), new THREE.Vector2(0, -0.3)]);
+  const flap = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(triangle, { depth: 0.04, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 }),
+    materials.scarf,
+  );
+  flap.rotation.x = -0.28;
+  flap.position.set(0, 0.97, 0.6);
+  body.add(collar, flap);
 
   const tail = new THREE.Group();
   tail.position.set(0.3, 0.22, -0.32);
