@@ -10,6 +10,7 @@ import {
   locatePlace, readOnboarding, shouldShowOnboarding, syncOnboarding, writeOnboarding,
 } from "../lib/onboarding";
 import logoHive from "../img/logoHive.svg";
+import HiveCell from "./HiveCell";
 import InterestPicker from "./InterestPicker";
 import classes from "./Onboarding.module.css";
 
@@ -443,6 +444,9 @@ export default function Onboarding() {
                     onChange={(e) => update({ firstName: e.target.value })}
                   />
                 </label>
+                <div className={classes.helloMark}>
+                  <HiveCell name={state.firstName} />
+                </div>
               </form>
             )}
 

@@ -141,7 +141,7 @@ html, body {
 
 @media (max-width: 900px) {
   :root {
-    --bottom-nav-height: 64px;
+    --bottom-nav-height: calc(74px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Discussion ouverte sur mobile : la BottomNav est masquée (voir MessagesPage) */

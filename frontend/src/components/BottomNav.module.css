@@ -12,7 +12,8 @@
     z-index: 600;
     background: var(--bg-surface);
     border-top: 1px solid var(--border-soft);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* Marge sous les onglets pour qu'ils ne collent pas au bord de l'écran */
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Masquée pendant une discussion ouverte (attribut posé par MessagesPage) */
