@@ -1,0 +1,8 @@
+/* Façade cinétique (HiveFacade.jsx) : le canvas occupe toute la place qu'on lui donne */
+.facade {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Le doigt anime la façade au lieu de faire défiler */
+  touch-action: none;
+}

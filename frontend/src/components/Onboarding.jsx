@@ -10,7 +10,7 @@ import {
   locatePlace, readOnboarding, shouldShowOnboarding, syncOnboarding, writeOnboarding,
 } from "../lib/onboarding";
 import logoHive from "../img/logoHive.svg";
-import HiveCell from "./HiveCell";
+import HiveFacade from "./HiveFacade";
 import InterestPicker from "./InterestPicker";
 import classes from "./Onboarding.module.css";
 
@@ -405,7 +405,11 @@ export default function Onboarding() {
           </div>
         </main>
       ) : (
-        <main className={classes.body} ref={bodyRef} onScroll={measureBody}>
+        <main
+          className={`${classes.body} ${state.step === "name" ? classes.bodyFacade : ""}`}
+          ref={bodyRef}
+          onScroll={measureBody}
+        >
           <div className={classes.panel} key={state.step}>
             {state.step === "name" && (
               <form
@@ -444,9 +448,6 @@ export default function Onboarding() {
                     onChange={(e) => update({ firstName: e.target.value })}
                   />
                 </label>
-                <div className={classes.helloMark}>
-                  <HiveCell name={state.firstName} />
-                </div>
               </form>
             )}
 
@@ -543,6 +544,11 @@ export default function Onboarding() {
               </>
             )}
           </div>
+          {state.step === "name" && (
+            <div className={classes.facade}>
+              <HiveFacade inputRef={nameInputRef} value={state.firstName} />
+            </div>
+          )}
         </main>
       )}
 

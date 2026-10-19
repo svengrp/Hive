@@ -726,27 +726,7 @@ button.stepButton:hover .stepLabel {
 
 /* ---------- Première étape : « Bonjour, <prénom> » ---------- */
 .hello {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: 40px;
   padding-top: 4vh;
-}
-
-.helloTitle {
-  grid-column: 1 / -1;
-}
-
-.hello .lead,
-.nameField {
-  grid-column: 1;
-}
-
-/* Le logo dont l'alvéole ouverte se remplit avec le prénom (HiveCell) */
-.helloMark {
-  grid-column: 2;
-  grid-row: 2 / span 2;
-  align-self: end;
-  width: 132px;
 }
 
 .helloTitle {
@@ -807,6 +787,23 @@ button.stepButton:hover .stepLabel {
 .nameInput {
   height: 52px;
   font-size: 17px;
+}
+
+/* Façade cinétique sous le formulaire (HiveFacade) : elle prend la place libre,
+   d'un bord à l'autre de l'écran, jusqu'à la barre du bas */
+.bodyFacade {
+  display: flex;
+  flex-direction: column;
+}
+
+.facade {
+  flex: 1;
+  min-height: 160px;
+  margin: 32px -24px -32px;
+}
+
+.compact .facade {
+  display: none;
 }
 
 /* ---------- Écran final : la carte, le texte posé dessus ---------- */
@@ -1154,7 +1151,6 @@ button.stepButton:hover .stepLabel {
 
 @media (max-width: 600px) {
   .hello {
-    grid-template-columns: minmax(0, 1fr);
     padding-top: 2vh;
   }
 
@@ -1162,23 +1158,17 @@ button.stepButton:hover .stepLabel {
     margin-top: 28px;
   }
 
-  .helloMark {
-    grid-column: 1;
-    grid-row: auto;
-    width: 92px;
-    margin-top: 48px;
+  .facade {
+    min-height: 120px;
+    margin: 20px -16px -20px;
   }
 }
 
-/* Petit écran ou clavier ouvert : le titre et le champ passent avant le logo */
-@media (max-width: 600px) and (max-height: 640px) {
-  .helloMark {
+/* Petits téléphones : le titre et le champ passent avant la façade */
+@media (max-width: 600px) and (max-height: 600px) {
+  .facade {
     display: none;
   }
-}
-
-.compact .helloMark {
-  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
