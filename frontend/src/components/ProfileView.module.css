@@ -937,3 +937,23 @@
   font-size: 12.5px;
   color: var(--text-muted);
 }
+
+/* Bannière de la personne en haut de Mon profil */
+.ownBanner {
+  height: 160px;
+  background-color: var(--bg-card-soft);
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* Ancres des conseils « profil complété » : visibles sous l'en-tête collant */
+[id^="profile-"] {
+  scroll-margin-top: calc(var(--app-header-h, 65px) + 16px);
+}
+
+@media (max-width: 600px) {
+  .ownBanner {
+    height: 96px;
+  }
+}

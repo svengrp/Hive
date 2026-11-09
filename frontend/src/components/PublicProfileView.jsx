@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { MapPin, Calendar, ArrowLeft, MessageSquare, Globe, Linkedin, Github, PencilLine } from "lucide-react";
+import { MapPin, Calendar, ArrowLeft, MessageSquare, Globe, Linkedin, Github, PencilLine, FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { api } from "../lib/api";
+import { api, BASE_URL } from "../lib/api";
+import { bannerSrc } from "../lib/banner";
 import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
 import HiveRating from "./HiveRating";
@@ -58,6 +59,20 @@ function TimelineItem({ title, subtitle, entry, location, org }) {
       </div>
     </li>
   );
+}
+
+/* Le CV n'est servi qu'aux membres connectés : téléchargé avec le jeton puis ouvert dans un onglet */
+async function openCv(id) {
+  const tab = window.open("", "_blank");
+  try {
+    const res = await fetch(`${BASE_URL}/user/${id}/cv`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+    if (!res.ok) throw new Error();
+    const url = URL.createObjectURL(await res.blob());
+    if (tab) tab.location.href = url;
+    else window.location.href = url;
+  } catch {
+    tab?.close();
+  }
 }
 
 const LINKS = [
@@ -131,7 +146,11 @@ export default function PublicProfileView() {
         </button>
 
         <header className={classes.header}>
-          <div className={classes.band} aria-hidden="true" />
+          <div
+            className={classes.band}
+            style={bannerSrc(profile) ? { backgroundImage: `url("${bannerSrc(profile)}")` } : undefined}
+            aria-hidden="true"
+          />
           <div className={classes.headerBody}>
             <UserAvatar
               user={profile}
@@ -180,6 +199,19 @@ export default function PublicProfileView() {
 
             <div className={classes.subRow}>
               <HiveRating reputation={profile.reputation} />
+              {profile.cv?.name && (
+                user ? (
+                  <button type="button" className={classes.cvBtn} onClick={() => openCv(id)}>
+                    <FileText size={15} />
+                    {t("cv.viewCv")}
+                  </button>
+                ) : (
+                  <Link to="/login" className={classes.cvBtn}>
+                    <FileText size={15} />
+                    {t("cv.cvLogin")}
+                  </Link>
+                )
+              )}
               {links.length > 0 && (
                 <ul className={classes.links} aria-label={t("cv.links")}>
                   {links.map(({ key, Icon }) => (

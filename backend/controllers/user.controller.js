@@ -147,6 +147,8 @@ function sanitizePublicProfile(user) {
     age: user.age,
     avatarUrl: user.avatarUrl,
     avatarVersion: user.avatarVersion ?? null,
+    bannerVersion: user.bannerVersion ?? null,
+    cv: user.cv?.name ? { name: user.cv.name, size: user.cv.size, updatedAt: user.cv.updatedAt } : null,
     languages: user.languages,
     education: user.education,
     skills: user.skills,

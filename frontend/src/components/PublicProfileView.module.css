@@ -43,12 +43,41 @@
 
 .band {
   height: 104px;
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg-card));
+  background-color: color-mix(in srgb, var(--accent) 12%, var(--bg-card));
+  background-size: cover;
+  background-position: center;
   border-bottom: 1px solid var(--border-soft);
+}
+
+/* Avec une bannière choisie par la personne : plus haute, comme sur un CV en ligne */
+.band[style] {
+  height: 200px;
+}
+
+.cvBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-soft));
+  border-radius: var(--radius-full);
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cvBtn:hover {
+  background: rgba(var(--accent-rgb), 0.15);
 }
 
 .headerBody {
   position: relative;
+  /* flow-root : la marge négative de la photo reste dans l'en-tête (sinon tout le bloc remontait sur la bannière) */
+  display: flow-root;
   padding: 0 28px 24px;
 }
 
@@ -439,6 +468,10 @@
 
   .band {
     height: 76px;
+  }
+
+  .band[style] {
+    height: 110px;
   }
 
   .headerBody {

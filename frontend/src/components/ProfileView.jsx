@@ -16,6 +16,8 @@ import { prepareAvatar, AVATAR_ACCEPT } from "../lib/avatar";
 import { fetchMyBilling, openPortal } from "../lib/billing";
 import PlusBadge from "./PlusBadge";
 import CvEditor from "./CvEditor";
+import { ProfileCompletion, ProfileMedia } from "./ProfileShowcase";
+import { bannerSrc } from "../lib/banner";
 
 function getDisplayName(user) {
   return user.displayName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
@@ -277,6 +279,9 @@ export default function Profile() {
 
   return (
     <div className={classes.profilePage}>
+      {bannerSrc(profile) && (
+        <div className={classes.ownBanner} style={{ backgroundImage: `url("${bannerSrc(profile)}")` }} aria-hidden="true" />
+      )}
       <div className={classes.profileHeaderWrapper}>
         <div className={classes.profileHeader}>
           <div className={classes.avatarStack}>
@@ -300,7 +305,7 @@ export default function Profile() {
               <Eye size={15} />
               {t("cv.viewPublic")}
             </Link>
-            {profile.bio && <div className={classes.profileBio}>{profile.bio}</div>}
+            {profile.bio && profile.bio !== "Nouvel utilisateur Hive !" && <div className={classes.profileBio}>{profile.bio}</div>}
             {profile.interests?.length > 0 && (
               <ul className={classes.interestList} aria-label={t("profile.interests")}>
                 {cleanInterests(profile.interests).map((key) => (
@@ -314,6 +319,10 @@ export default function Profile() {
             <HiveRating reputation={profile.reputation} />
           </div>
         </div>
+      </div>
+
+      <div className={classes.profileContainer}>
+        <ProfileCompletion profile={profile} />
       </div>
 
       {plus && (
@@ -416,7 +425,16 @@ export default function Profile() {
 
       <div className={classes.profileContainer}>
         <section className={classes.section}>
-          <h2 className={classes.sectionTitle}>{t("cv.timelineTitle")}</h2>
+          <h2 className={classes.sectionTitle} id="profile-presentation">{t("cv.presentationTitle")}</h2>
+          <div className={classes.card}>
+            <ProfileMedia profile={profile} onChange={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />
+          </div>
+        </section>
+      </div>
+
+      <div className={classes.profileContainer}>
+        <section className={classes.section}>
+          <h2 className={classes.sectionTitle} id="profile-parcours">{t("cv.timelineTitle")}</h2>
           <div className={classes.card}>
             <CvEditor
               profile={profile}
@@ -441,7 +459,7 @@ export default function Profile() {
           <form onSubmit={handleSubmit}>
             <div className={classes.formGrid}>
               <div className={classes.card}>
-                <h3 className={classes.cardTitle}>{t("profile.personalInfo")}</h3>
+                <h3 className={classes.cardTitle} id="profile-infos">{t("profile.personalInfo")}</h3>
 
                 <div className={classes.avatarEditor}>
                   <UserAvatar
@@ -534,7 +552,7 @@ export default function Profile() {
               </div>
 
               <div className={classes.card}>
-                <h3 className={classes.cardTitle}>{t("profile.skillsLanguages")}</h3>
+                <h3 className={classes.cardTitle} id="profile-skills">{t("profile.skillsLanguages")}</h3>
 
                 <div className={classes.fieldGroup}>
                   <label className={classes.label}>{t("profile.languages")}</label>
@@ -572,7 +590,7 @@ export default function Profile() {
               </div>
 
               <div className={classes.card}>
-                <h3 className={classes.cardTitle}>{t("profile.location")}</h3>
+                <h3 className={classes.cardTitle} id="profile-location">{t("profile.location")}</h3>
 
                 <div className={classes.fieldGroup}>
                   <label className={classes.label}>{t("profile.city")}</label>

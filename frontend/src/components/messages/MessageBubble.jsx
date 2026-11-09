@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, FileText, MoreHorizontal, Pin } from "lucide-react";
 import { PersonAvatar } from "./Avatars";
@@ -8,6 +8,7 @@ import { formatClock, formatFullDate, getUserName, idOf } from "./messageUtils";
 import { buildMessageActions, groupReactions } from "./messageActions";
 import { personStyle } from "../../lib/personColor";
 import { downloadAttachment, formatSize, useAttachmentUrl } from "../../lib/attachments";
+import ImageLightbox from "./ImageLightbox";
 import classes from "./Chat.module.css";
 
 function EditArea({ value, onChange, onSave, onCancel }) {
@@ -45,19 +46,23 @@ export function jumpToMessage(msgId) {
   setTimeout(() => { delete el.dataset.flash; }, 1400);
 }
 
-/* Vignette d'une image jointe (chargée avec le jeton) ; un clic l'ouvre en grand dans un nouvel onglet */
+/* Vignette d'une image jointe (chargée avec le jeton) ; un clic l'ouvre en grand dans Hive (ImageLightbox) */
 function AttachedImage({ att, t }) {
   const { url, failed } = useAttachmentUrl(att._id);
+  const [open, setOpen] = useState(false);
   if (failed) return <span className={classes.attMissing}>{t("messages.attachmentUnavailable")}</span>;
   return (
-    <button
-      type="button"
-      className={classes.attImageBtn}
-      onClick={() => url && window.open(url, "_blank", "noopener")}
-      aria-label={t("messages.openImage", { name: att.name })}
-    >
-      {url ? <img src={url} alt={att.name} className={classes.attImage} /> : <span className={classes.attImage} aria-hidden="true" />}
-    </button>
+    <>
+      <button
+        type="button"
+        className={classes.attImageBtn}
+        onClick={() => url && setOpen(true)}
+        aria-label={t("messages.openImage", { name: att.name })}
+      >
+        {url ? <img src={url} alt={att.name} className={classes.attImage} /> : <span className={classes.attImage} aria-hidden="true" />}
+      </button>
+      {open && url && <ImageLightbox att={att} url={url} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 

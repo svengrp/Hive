@@ -19,6 +19,7 @@ const Notification = require('../models/Notification');
 const Rating = require('../models/Rating');
 const User = require('../models/User');
 const UserAvatar = require('../models/UserAvatar');
+const UserMedia = require('../models/UserMedia');
 const ProjectInvitation = require('../models/ProjectInvitation');
 const { getStripe } = require('./billing');
 
@@ -95,6 +96,7 @@ async function deleteUserAccount(user) {
     ProjectHistory.deleteMany({ userId }),
     Notification.deleteMany({ userId }),
     UserAvatar.deleteOne({ userId }),
+    UserMedia.deleteMany({ userId }),
     ProjectInvitation.deleteMany({ $or: [{ inviterId: userId }, { inviteeId: userId }] }),
     Rating.deleteMany({ $or: [{ raterId: userId }, { targetType: 'user', targetId: userId }] }),
   ]);

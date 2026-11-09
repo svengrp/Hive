@@ -65,6 +65,13 @@ const userSchema = new mongoose.Schema({
     })],
     default: [],
   },
+  // Bannière du profil (image dans UserMedia) : horodatage servant de version d'URL
+  bannerVersion: { type: Number, default: null },
+  // CV en PDF (fichier dans UserMedia), téléchargeable par les membres connectés
+  cv: {
+    type: new mongoose.Schema({ name: String, size: Number, updatedAt: Date }, { _id: false }),
+    default: null,
+  },
   // Liens publics (https) : site ou portfolio, LinkedIn, GitHub
   links: {
     website: { type: String, default: "" },
