@@ -3,7 +3,7 @@ const POPULATE_FIELDS = 'displayName firstName lastName avatarUrl avatarVersion 
 
 const REPLY_POPULATE = {
   path: 'replyTo',
-  select: 'content senderId deleted',
+  select: 'content senderId deleted attachments',
   populate: { path: 'senderId', select: 'displayName firstName lastName _id' },
 };
 

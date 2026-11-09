@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { MoreHorizontal, Pin } from "lucide-react";
+import { Download, FileText, MoreHorizontal, Pin } from "lucide-react";
 import { PersonAvatar } from "./Avatars";
 import ActionMenu from "./ActionMenu";
 import { useLongPress } from "./hooks";
 import { formatClock, formatFullDate, getUserName, idOf } from "./messageUtils";
 import { buildMessageActions, groupReactions } from "./messageActions";
 import { personStyle } from "../../lib/personColor";
+import { downloadAttachment, formatSize, useAttachmentUrl } from "../../lib/attachments";
 import classes from "./Chat.module.css";
 
 function EditArea({ value, onChange, onSave, onCancel }) {
@@ -44,10 +45,58 @@ export function jumpToMessage(msgId) {
   setTimeout(() => { delete el.dataset.flash; }, 1400);
 }
 
+/* Vignette d'une image jointe (chargée avec le jeton) ; un clic l'ouvre en grand dans un nouvel onglet */
+function AttachedImage({ att, t }) {
+  const { url, failed } = useAttachmentUrl(att._id);
+  if (failed) return <span className={classes.attMissing}>{t("messages.attachmentUnavailable")}</span>;
+  return (
+    <button
+      type="button"
+      className={classes.attImageBtn}
+      onClick={() => url && window.open(url, "_blank", "noopener")}
+      aria-label={t("messages.openImage", { name: att.name })}
+    >
+      {url ? <img src={url} alt={att.name} className={classes.attImage} /> : <span className={classes.attImage} aria-hidden="true" />}
+    </button>
+  );
+}
+
+function Attachments({ list, t, lang }) {
+  const images = list.filter((a) => a.kind === "image");
+  const files = list.filter((a) => a.kind !== "image");
+  return (
+    <div className={classes.attachments}>
+      {images.length > 0 && (
+        <div className={classes.attImages} data-count={images.length}>
+          {images.map((att) => <AttachedImage key={att._id} att={att} t={t} />)}
+        </div>
+      )}
+      {files.map((att) => (
+        <button
+          key={att._id}
+          type="button"
+          className={classes.attFile}
+          onClick={() => downloadAttachment(att).catch(() => {})}
+          aria-label={t("messages.download", { name: att.name })}
+        >
+          <span className={classes.attFileIcon} aria-hidden="true"><FileText size={18} /></span>
+          <span className={classes.attFileText}>
+            <span className={classes.attFileName}>{att.name}</span>
+            <span className={classes.attFileSize}>{formatSize(att.size, lang)}</span>
+          </span>
+          <Download size={16} aria-hidden="true" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /* Citation d'un message dans une réponse (cliquable : ramène au message d'origine) */
 function Quote({ reply, t }) {
   const name = getUserName(reply.senderId, t("messages.userFallback"));
-  const text = reply.deleted ? t("messages.quoteDeleted") : reply.content;
+  const text = reply.deleted
+    ? t("messages.quoteDeleted")
+    : reply.content || (reply.attachments?.length ? t("messages.attachmentPreview", { name: reply.attachments[0].name }) : "");
   return (
     <button
       type="button"
@@ -137,6 +186,7 @@ export default function MessageBubble({
               <span className={classes.bubbleSender} style={personStyle(sender)} aria-hidden="true">{senderName}</span>
             )}
             {reply && <Quote reply={reply} t={t} />}
+            {!muted && msg.attachments?.length > 0 && <Attachments list={msg.attachments} t={t} lang={i18n.language} />}
             {isEditing ? (
               <EditArea value={editDraft} onChange={onEditDraft} onSave={onEditSave} onCancel={onEditCancel} />
             ) : (

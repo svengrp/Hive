@@ -819,3 +819,20 @@
 .btnRegister:active:not(:disabled) {
   transform: scale(0.98);
 }
+
+/* Écrans moyens (tablette, petit portable) : le menu et les boutons de droite se touchaient vers 1000 px
+   (« Hive+ » collé à l'icône des messages). Espacements resserrés et une marge garantie entre les trois zones. */
+@media (min-width: 601px) and (max-width: 1180px) {
+  .nav {
+    column-gap: 20px;
+    padding: 0 1.25rem;
+  }
+
+  .navList {
+    gap: 20px;
+  }
+
+  .navRight {
+    gap: 8px;
+  }
+}

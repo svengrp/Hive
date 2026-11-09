@@ -64,12 +64,13 @@ function safeFormat(lang, options, date) {
 
 export function formatClock(date, lang) {
   if (!date) return "";
-  return safeFormat(lang, { hour: "2-digit", minute: "2-digit" }, date);
+  // Toujours en 24 h (Hive est à Genève) : sans hourCycle, l'anglais affichait « 11:56 AM »
+  return safeFormat(lang, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }, date);
 }
 
 export function formatFullDate(date, lang) {
   if (!date) return "";
-  return safeFormat(lang, { dateStyle: "full", timeStyle: "short" }, date);
+  return safeFormat(lang, { dateStyle: "full", timeStyle: "short", hourCycle: "h23" }, date);
 }
 
 /* Heure affichée dans la liste : HH:mm, « Hier », jour de la semaine, puis jj/mm/aa */

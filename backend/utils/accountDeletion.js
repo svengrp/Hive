@@ -14,6 +14,7 @@ const ProjectTask = require('../models/ProjectTask');
 const ProjectEvent = require('../models/ProjectEvent');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const MessageAttachment = require('../models/MessageAttachment');
 const Notification = require('../models/Notification');
 const Rating = require('../models/Rating');
 const User = require('../models/User');
@@ -29,7 +30,9 @@ async function deleteProjectsData(projectIds) {
   const conversations = await Conversation.find({ projectId: { $in: projectIds } }).select('_id').lean();
   const conversationIds = conversations.map((c) => c._id);
 
+  const withFiles = await Message.find({ conversationId: { $in: conversationIds }, 'attachments.0': { $exists: true } }).select('_id').lean();
   await Promise.all([
+    MessageAttachment.deleteMany({ messageId: { $in: withFiles.map((m) => m._id) } }),
     Message.deleteMany({ conversationId: { $in: conversationIds } }),
     ProjectTask.deleteMany({ conversationId: { $in: conversationIds } }),
     ProjectEvent.deleteMany({ conversationId: { $in: conversationIds } }),
@@ -72,8 +75,10 @@ async function deleteUserAccount(user) {
     // Ses messages restent visibles comme « supprimés », sans texte
     Message.updateMany(
       { senderId: userId },
-      { $set: { content: '[supprimé]', deleted: true, reactions: [], pinned: false, pinnedBy: null, pinnedAt: null } },
+      { $set: { content: '[supprimé]', deleted: true, reactions: [], attachments: [], pinned: false, pinnedBy: null, pinnedAt: null } },
     ),
+    // Ses fichiers envoyés dans la messagerie
+    MessageAttachment.deleteMany({ uploaderId: userId }),
     Message.updateMany(
       { $or: [{ readBy: userId }, { 'reactions.userId': userId }] },
       { $pull: { readBy: userId, reactions: { userId } } },

@@ -7,6 +7,12 @@ const ctrl = require('../controllers/messages.controller');
 
 router.use(requireAuth);
 
+// Pièces jointes : fichier brut (5 Mo au plus), avant les routes dynamiques
+const express = require('express');
+const { MAX_SIZE } = require('../utils/attachments');
+router.post('/attachments', express.raw({ type: () => true, limit: MAX_SIZE }), ctrl.uploadAttachment);
+router.get('/attachments/:id', ctrl.downloadAttachment);
+
 router.get('/conversations',         ctrl.getConversations);
 router.get('/unread',                ctrl.getUnreadCount);
 router.get('/group/mine',            ctrl.getMyConversations);

@@ -20,7 +20,7 @@ const text = (value, max) => (typeof value === 'string' ? value.trim().slice(0, 
 
 const PAGE_SIZE = 24;
 const DAILY_INVITES = Number(process.env.DAILY_INVITES || 10);
-const TALENT_FIELDS = 'displayName firstName lastName avatarUrl avatarVersion bio skills languages interests address.city address.country reputation plan createdAt';
+const TALENT_FIELDS = 'displayName firstName lastName avatarUrl avatarVersion bio headline skills languages interests address.city address.country reputation plan createdAt';
 const PUBLIC_USER = 'displayName firstName lastName avatarUrl avatarVersion plan';
 
 /* Personnes bloquées par moi ou qui m'ont bloqué */

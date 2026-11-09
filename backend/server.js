@@ -17,6 +17,7 @@ const ProjectRequest = require('./models/ProjectRequest');
 const { containsProfanity } = require('./utils/profanityFilter');
 const { notifyNewMessage } = require('./utils/messageEmails');
 const { populateMessage } = require('./utils/messagePopulate');
+const { claimAttachments, attachToMessage } = require('./utils/attachments');
 const { resolveSession } = require('./utils/session');
 const { migrateInlineAvatars } = require('./utils/avatars');
 const { registrationsTotal, projectsCreatedTotal, projectsClosedTotal, joinRequestsTotal, messagesSentTotal, socketConnectionsActive } = require('./metric');
@@ -157,6 +158,9 @@ io.on('connection', (socket) => {
     return null;
   };
 
+  // Aperçu d'un message (notification, e-mail) : son texte, ou ses pièces jointes s'il n'a pas de texte
+  const previewOf = (content, files) => content || (files.length ? `📎 ${files.map((f) => f.name).join(', ')}` : '');
+
   // Message cité : doit appartenir à la même conversation (DM entre les deux mêmes personnes ou même groupe)
   const validReplyTo = async (replyTo, filter) => {
     if (!replyTo || !/^[a-f0-9]{24}$/i.test(String(replyTo))) return null;
@@ -164,8 +168,10 @@ io.on('connection', (socket) => {
     return original ? original._id : null;
   };
 
-  socket.on('send_message', async ({ to, content, replyTo } = {}) => {
-    if (typeof content !== 'string' || !content.trim()) return;
+  socket.on('send_message', async ({ to, content = '', replyTo, attachments } = {}) => {
+    if (typeof content !== 'string') return;
+    const hasFiles = Array.isArray(attachments) && attachments.length > 0;
+    if (!content.trim() && !hasFiles) return;
     if (!isId(to)) {
       socket.emit('message_error', { message: 'Destinataire invalide.' });
       return;
@@ -203,12 +209,19 @@ io.on('connection', (socket) => {
           { senderId: to, receiverId: socket.userId },
         ],
       });
+      const files = await claimAttachments(attachments, socket.userId);
+      if (files.error) {
+        socket.emit('message_error', { message: files.error, to: String(to) });
+        return;
+      }
       const msg = await Message.create({
         senderId: socket.userId,
         receiverId: to,
         content: content.trim(),
         replyTo: replyId,
+        attachments: files,
       });
+      await attachToMessage(files, msg._id);
 
       const populated = await populateMessage(Message.findById(msg._id), { receiver: true });
 
@@ -221,7 +234,7 @@ io.on('connection', (socket) => {
         recipientIds: [String(to)],
         sender: populated.senderId,
         key: `dm:${socket.userId}`,
-        content: msg.content,
+        content: previewOf(msg.content, files),
         path: `/messages?with=${socket.userId}`,
       });
     } catch (err) {
@@ -248,8 +261,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('send_group_message', async ({ conversationId, content, replyTo } = {}) => {
-    if (!isId(conversationId) || typeof content !== 'string' || !content.trim()) return;
+  socket.on('send_group_message', async ({ conversationId, content = '', replyTo, attachments } = {}) => {
+    const hasFiles = Array.isArray(attachments) && attachments.length > 0;
+    if (!isId(conversationId) || typeof content !== 'string' || (!content.trim() && !hasFiles)) return;
     const invalid = contentError(content);
     if (invalid) {
       socket.emit('message_error', { message: invalid });
@@ -269,13 +283,20 @@ io.on('connection', (socket) => {
       }
 
       const replyId = await validReplyTo(replyTo, { conversationId });
+      const files = await claimAttachments(attachments, socket.userId);
+      if (files.error) {
+        socket.emit('message_error', { message: files.error });
+        return;
+      }
       const msg = await Message.create({
         conversationId,
         senderId: socket.userId,
         content: content.trim(),
         readBy: [socket.userId],
         replyTo: replyId,
+        attachments: files,
       });
+      await attachToMessage(files, msg._id);
       const populated = await populateMessage(Message.findById(msg._id));
       conv.participants.forEach(uid => {
         io.to(`user:${uid}`).emit('new_group_message', { conversationId, message: populated });
@@ -288,7 +309,7 @@ io.on('connection', (socket) => {
         sender: populated.senderId,
         key: `grp:${conversationId}`,
         title: conv.projectTitle,
-        content: msg.content,
+        content: previewOf(msg.content, files),
         path: `/messages?group=${conversationId}`,
       });
     } catch (err) {

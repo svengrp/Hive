@@ -130,7 +130,6 @@
 
 .progressValue {
   color: var(--text-main);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 

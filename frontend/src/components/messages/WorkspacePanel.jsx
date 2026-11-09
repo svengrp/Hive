@@ -23,7 +23,7 @@ function useFormatters() {
       day: make({ day: "numeric", month: "short" }),
       dayNum: make({ day: "numeric" }),
       month: make({ month: "short" }),
-      weekdayTime: make({ weekday: "long", hour: "2-digit", minute: "2-digit" }),
+      weekdayTime: make({ weekday: "long", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
       full: make({ dateStyle: "medium", timeStyle: "short" }),
     };
   }, [lang]);

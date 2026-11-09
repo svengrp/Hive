@@ -254,7 +254,7 @@ exports.getProjectById = async (req, res) => {
   if (!isId(req.params.id)) return res.status(404).json({ error: 'Project not found' });
   const project = await Project.findById(req.params.id)
     // Vie privée : ville et pays du créateur seulement (jamais la rue ni le code postal)
-    .populate('ownerId', 'displayName firstName lastName avatarUrl avatarVersion bio skills languages address.city address.country reputation createdAt plan')
+    .populate('ownerId', 'displayName firstName lastName avatarUrl avatarVersion bio headline skills languages address.city address.country reputation createdAt plan')
     .populate('participants', 'displayName firstName lastName avatarUrl avatarVersion');
 
   if (!project) return res.status(404).json({ error: 'Project not found' });

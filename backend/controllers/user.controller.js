@@ -16,7 +16,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\
 
 /* Limites des champs du profil : un profil sert partout (cartes, messages, projets),
    un champ démesuré alourdit toutes ces réponses. */
-const TEXT_LIMITS = { firstName: 60, lastName: 60, displayName: 60, phone: 30, bio: 1000 };
+const TEXT_LIMITS = { firstName: 60, lastName: 60, displayName: 60, phone: 30, bio: 1000, headline: 120 };
 const LIST_LIMITS = { skills: 30, languages: 15, education: 15 };
 const LIST_ITEM_MAX = 80;
 const ADDRESS_MAX = 100;
@@ -34,6 +34,65 @@ function validAvatar(value) {
   } catch {
     return false;
   }
+}
+
+/* Parcours (profil façon CV) : expériences et formations. Dates AAAA-MM (ou AAAA), fin vide si en cours.
+   Renvoie la liste nettoyée, ou une chaîne d'erreur. */
+const MONTH_RE = /^\d{4}(-(0[1-9]|1[0-2]))?$/;
+const TIMELINE_RULES = {
+  experiences: { max: 15, required: 'title', fields: { title: 80, organization: 80, location: 80, description: 1500 } },
+  formations: { max: 10, required: 'school', fields: { school: 100, degree: 120, description: 1000 } },
+};
+function cleanTimeline(kind, list) {
+  const rule = TIMELINE_RULES[kind];
+  if (!Array.isArray(list)) return 'Parcours invalide.';
+  if (list.length > rule.max) return `${rule.max} éléments au maximum.`;
+  const out = [];
+  for (const item of list) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return 'Parcours invalide.';
+    const entry = {};
+    for (const [field, max] of Object.entries(rule.fields)) {
+      const value = item[field] ?? '';
+      if (typeof value !== 'string') return 'Parcours invalide.';
+      if (value.trim().length > max) return `Ce champ est limité à ${max} caractères.`;
+      entry[field] = value.trim();
+    }
+    if (!entry[rule.required]) return kind === 'experiences' ? 'Chaque expérience a besoin d\'un intitulé.' : 'Chaque formation a besoin d\'un établissement.';
+    for (const key of ['start', 'end']) {
+      const value = item[key] ?? '';
+      if (typeof value !== 'string' || (value && !MONTH_RE.test(value))) return 'Date invalide.';
+      entry[key] = value;
+    }
+    entry.current = item.current === true;
+    if (entry.current) entry.end = '';
+    if (entry.start && entry.end && entry.end < entry.start) return 'La date de fin précède la date de début.';
+    out.push(entry);
+  }
+  return out;
+}
+
+/* Liens publics : https uniquement (jamais javascript: ni http en clair). */
+const LINK_KEYS = ['website', 'linkedin', 'github'];
+function cleanLinks(links) {
+  if (typeof links !== 'object' || links === null || Array.isArray(links)) return 'Liens invalides.';
+  const out = {};
+  for (const key of LINK_KEYS) {
+    let value = links[key] ?? '';
+    if (typeof value !== 'string') return 'Liens invalides.';
+    value = value.trim();
+    if (!value) { out[key] = ''; continue; }
+    if (!/^https?:\/\//i.test(value)) value = `https://${value}`;
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') return 'Liens invalides.';
+      url.protocol = 'https:';
+      if (value.length > 300) return 'Lien trop long.';
+      out[key] = url.toString();
+    } catch {
+      return 'Lien invalide.';
+    }
+  }
+  return out;
 }
 
 /* Renvoie un message d'erreur, ou null si les champs envoyés sont valides. */
@@ -65,6 +124,12 @@ function profileError(data) {
   return null;
 }
 
+const publicEntry = (e) => {
+  const o = typeof e?.toObject === 'function' ? e.toObject() : { ...e };
+  delete o.__v;
+  return o;
+};
+
 /* Retire les champs sensibles (passwordHash, codes de reset…) avant d'exposer un profil public */
 function sanitizePublicProfile(user) {
   if (!user) return null;
@@ -75,6 +140,10 @@ function sanitizePublicProfile(user) {
     lastName: user.lastName,
     displayName: user.displayName,
     bio: user.bio,
+    headline: user.headline || "",
+    experiences: (user.experiences || []).map(publicEntry),
+    formations: (user.formations || []).map(publicEntry),
+    links: { website: user.links?.website || "", linkedin: user.links?.linkedin || "", github: user.links?.github || "" },
     age: user.age,
     avatarUrl: user.avatarUrl,
     avatarVersion: user.avatarVersion ?? null,
@@ -143,6 +212,10 @@ exports.updateInfos = async (req, res) => {
       age,
       phone,
       bio,
+      headline,
+      experiences,
+      formations,
+      links,
 
       skills,
       languages,
@@ -160,6 +233,7 @@ exports.updateInfos = async (req, res) => {
       age,
       phone,
       bio,
+      headline,
       skills,
       languages,
       education,
@@ -183,6 +257,19 @@ exports.updateInfos = async (req, res) => {
     const invalid = profileError(updateData);
     if (invalid) return res.status(400).json({ message: invalid });
 
+    for (const kind of ['experiences', 'formations']) {
+      const list = kind === 'experiences' ? experiences : formations;
+      if (list === undefined) continue;
+      const cleaned = cleanTimeline(kind, list);
+      if (typeof cleaned === 'string') return res.status(400).json({ message: cleaned });
+      updateData[kind] = cleaned;
+    }
+    if (links !== undefined) {
+      const cleaned = cleanLinks(links);
+      if (typeof cleaned === 'string') return res.status(400).json({ message: cleaned });
+      updateData.links = cleaned;
+    }
+
     // Photo envoyée : stockée à part (UserAvatar), le profil ne garde que sa version.
     // Lien externe ou retrait : l'ancienne photo envoyée est supprimée.
     if (typeof updateData.avatarUrl === 'string') {
@@ -195,7 +282,9 @@ exports.updateInfos = async (req, res) => {
       }
     }
 
-    if (containsProfanity(displayName, bio, firstName, lastName)) {
+    const timelineTexts = [...(updateData.experiences || []), ...(updateData.formations || [])]
+      .flatMap((e) => [e.title, e.organization, e.school, e.degree, e.description]);
+    if (containsProfanity(displayName, bio, firstName, lastName, headline, ...timelineTexts)) {
       return res.status(400).json({ message: 'Le contenu contient des termes inappropriés.' });
     }
 

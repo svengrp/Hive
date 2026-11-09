@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Camera, Rocket, Upload } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Camera, Eye, Rocket, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
@@ -15,6 +15,7 @@ import { cleanInterests } from "../lib/interests";
 import { prepareAvatar, AVATAR_ACCEPT } from "../lib/avatar";
 import { fetchMyBilling, openPortal } from "../lib/billing";
 import PlusBadge from "./PlusBadge";
+import CvEditor from "./CvEditor";
 
 function getDisplayName(user) {
   return user.displayName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
@@ -44,6 +45,7 @@ export default function Profile() {
     firstName: "",
     lastName: "",
     displayName: "",
+    headline: "",
     bio: "",
     phone: "",
     age: "",
@@ -52,8 +54,8 @@ export default function Profile() {
     avatarUrl: "",
     languages: [],
     skills: [],
-    education: [],
     interests: [],
+    links: { website: "", linkedin: "", github: "" },
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -64,7 +66,6 @@ export default function Profile() {
 
   const [newLanguage, setNewLanguage] = useState("");
   const [newSkill, setNewSkill] = useState("");
-  const [newEducation, setNewEducation] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -142,6 +143,7 @@ export default function Profile() {
         firstName: currentUser.firstName || "",
         lastName: currentUser.lastName || "",
         displayName: currentUser.displayName || "",
+        headline: currentUser.headline || "",
         bio: currentUser.bio || "",
         phone: currentUser.phone || "",
         age: currentUser.age || "",
@@ -150,8 +152,12 @@ export default function Profile() {
         avatarUrl: currentUser.avatarUrl || "",
         languages: currentUser.languages || [],
         skills: currentUser.skills || [],
-        education: currentUser.education || [],
         interests: cleanInterests(currentUser.interests),
+        links: {
+          website: currentUser.links?.website || "",
+          linkedin: currentUser.links?.linkedin || "",
+          github: currentUser.links?.github || "",
+        },
       });
     } catch (err) {
       console.error(err);
@@ -217,12 +223,13 @@ export default function Profile() {
           firstName: form.firstName,
           lastName: form.lastName,
           displayName: form.displayName,
+          headline: form.headline,
+          links: form.links,
           age: form.age ? Number(form.age) : null,
           phone: form.phone,
           bio: form.bio,
           languages: form.languages,
           skills: form.skills,
-          education: form.education,
           interests: form.interests,
           avatarUrl: form.avatarUrl,
           address: { city: form.city, country: form.country },
@@ -287,7 +294,12 @@ export default function Profile() {
               {getDisplayName(profile)}
               {profile.plan === "plus" && <PlusBadge size="md" />}
             </h1>
+            {profile.headline && <div className={classes.profileHeadline}>{profile.headline}</div>}
             <div className={classes.profileEmail}>{profile.email}</div>
+            <Link to={`/users/${profile._id}`} className={classes.publicLink}>
+              <Eye size={15} />
+              {t("cv.viewPublic")}
+            </Link>
             {profile.bio && <div className={classes.profileBio}>{profile.bio}</div>}
             {profile.interests?.length > 0 && (
               <ul className={classes.interestList} aria-label={t("profile.interests")}>
@@ -404,6 +416,20 @@ export default function Profile() {
 
       <div className={classes.profileContainer}>
         <section className={classes.section}>
+          <h2 className={classes.sectionTitle}>{t("cv.timelineTitle")}</h2>
+          <div className={classes.card}>
+            <CvEditor
+              profile={profile}
+              onSaved={(updated) =>
+                setProfile((prev) => ({ ...prev, experiences: updated.experiences, formations: updated.formations, education: updated.education }))
+              }
+            />
+          </div>
+        </section>
+      </div>
+
+      <div className={classes.profileContainer}>
+        <section className={classes.section}>
           <h2 className={classes.sectionTitle}>{t("profile.editTitle")}</h2>
 
           {message.text && (
@@ -473,6 +499,20 @@ export default function Profile() {
                 </div>
 
                 <div className={classes.fieldGroup}>
+                  <label className={classes.label} htmlFor="profile-headline">{t("cv.headline")}</label>
+                  <input
+                    id="profile-headline"
+                    className={classes.input}
+                    name="headline"
+                    maxLength={120}
+                    value={form.headline}
+                    onChange={handleChange}
+                    placeholder={t("cv.headlinePlaceholder")}
+                  />
+                  <span className={classes.fieldHint}>{t("cv.headlineHint")}</span>
+                </div>
+
+                <div className={classes.fieldGroup}>
                   <label className={classes.label}>{t("profile.age")}</label>
                   <input type="number" className={classes.input} name="age" value={form.age} onChange={handleChange} />
                 </div>
@@ -529,23 +569,6 @@ export default function Profile() {
                     <button type="button" className={classes.addBtn} onClick={() => addItem("skills", newSkill, setNewSkill)}>+</button>
                   </div>
                 </div>
-
-                <div className={classes.fieldGroup}>
-                  <label className={classes.label}>{t("profile.education")}</label>
-                  <div className={classes.tagList}>
-                    {form.education.map((edu, i) => (
-                      <div key={i} className={classes.tag}>
-                        {edu}
-                        <span onClick={() => removeItem("education", i)} className={classes.removeTag}>✕</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={classes.addField}>
-                    <input className={classes.input} value={newEducation} onChange={(e) => setNewEducation(e.target.value)} placeholder={t("profile.addEducation")}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addItem("education", newEducation, setNewEducation); } }} />
-                    <button type="button" className={classes.addBtn} onClick={() => addItem("education", newEducation, setNewEducation)}>+</button>
-                  </div>
-                </div>
               </div>
 
               <div className={classes.card}>
@@ -560,6 +583,26 @@ export default function Profile() {
                   <label className={classes.label}>{t("profile.country")}</label>
                   <input className={classes.input} name="country" value={form.country} onChange={handleChange} />
                 </div>
+              </div>
+
+              <div className={classes.card}>
+                <h3 className={classes.cardTitle}>{t("cv.links")}</h3>
+                <p className={classes.cardHint}>{t("cv.linksHint")}</p>
+                {["website", "linkedin", "github"].map((key) => (
+                  <div key={key} className={classes.fieldGroup}>
+                    <label className={classes.label} htmlFor={`link-${key}`}>{t(`cv.${key}`)}</label>
+                    <input
+                      id={`link-${key}`}
+                      className={classes.input}
+                      type="url"
+                      inputMode="url"
+                      maxLength={300}
+                      value={form.links[key]}
+                      onChange={(e) => setForm((current) => ({ ...current, links: { ...current.links, [key]: e.target.value } }))}
+                      placeholder={{ website: "https://monportfolio.ch", linkedin: "https://linkedin.com/in/…", github: "https://github.com/…" }[key]}
+                    />
+                  </div>
+                ))}
               </div>
 
               <div className={classes.card}>

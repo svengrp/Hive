@@ -10,7 +10,9 @@ function usePreview(item, myId) {
   const { t } = useTranslation();
   const last = item.lastMessage;
   if (!last) return item.type === "group" ? t("messages.startDiscussion") : "";
-  const text = last.deleted ? t("messages.deletedMessage") : last.content || "";
+  const text = last.deleted
+    ? t("messages.deletedMessage")
+    : last.content || (last.attachments?.length ? t("messages.attachmentPreview", { name: last.attachments[0].name }) : "");
   if (last.isSystem) return text;
   if (idOf(last.senderId) === myId) return t("messages.previewSender", { name: t("messages.you"), text });
   if (item.type === "group") {

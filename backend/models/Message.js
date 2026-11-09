@@ -7,7 +7,16 @@ const mongoose = require('mongoose');
 const messageSchema = new mongoose.Schema({
   senderId:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   receiverId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  content:         { type: String, required: true, trim: true, maxlength: 2000 },
+  // Texte facultatif quand le message porte des pièces jointes
+  content:         { type: String, trim: true, maxlength: 2000, default: '',
+                     required: function requiredContent() { return !(this.attachments && this.attachments.length); } },
+  // Pièces jointes (fichiers dans MessageAttachment) : _id = id du fichier, téléchargé par /api/messages/attachments/:id
+  attachments:     [{
+    name: { type: String, required: true },
+    mime: { type: String, required: true },
+    kind: { type: String, enum: ['image', 'file'], required: true },
+    size: { type: Number, required: true },
+  }],
   read:            { type: Boolean, default: false },
   conversationId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation', default: null },
   readBy:          [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

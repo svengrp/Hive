@@ -289,13 +289,15 @@ export default function MessagesPage() {
     });
   };
 
-  const sendMessage = () => {
+  // attachments : ids des fichiers déjà envoyés par le compositeur (lib/attachments.js)
+  const sendMessage = (attachments = []) => {
     const content = draft.trim();
-    if (!content || content.length > MAX_LENGTH || !socket || !activeKey) return;
+    if ((!content && !attachments.length) || content.length > MAX_LENGTH || !socket || !activeKey) return;
     const { type, id } = parseKey(activeKey);
     const replyTo = replyTarget ? idOf(replyTarget) : undefined;
-    if (type === "grp") socket.emit("send_group_message", { conversationId: id, content, replyTo });
-    else socket.emit("send_message", { to: id, content, replyTo });
+    const files = attachments.length ? { attachments } : {};
+    if (type === "grp") socket.emit("send_group_message", { conversationId: id, content, replyTo, ...files });
+    else socket.emit("send_message", { to: id, content, replyTo, ...files });
     lastTypingEmitRef.current = 0;
     setDraftFor(activeKey, "");
     if (replyTarget) cancelReply();
@@ -452,7 +454,7 @@ export default function MessagesPage() {
         autoFocus={!isMobile}
         replyTarget={replyTarget ? {
           name: idOf(replyTarget.senderId) === myId ? t("messages.you") : getUserName(replyTarget.senderId, t("messages.userFallback")),
-          text: replyTarget.content,
+          text: replyTarget.content || (replyTarget.attachments?.length ? t("messages.attachmentPreview", { name: replyTarget.attachments[0].name }) : ""),
         } : null}
         onCancelReply={cancelReply}
       />

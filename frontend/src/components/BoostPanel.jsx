@@ -54,7 +54,7 @@ export default function BoostPanel({ project, onBoosted }) {
 
   const boosted = isBoosted(project);
   const until = boosted
-    ? new Intl.DateTimeFormat(lang === "en" ? "en-CH" : "fr-CH", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(project.boostedUntil))
+    ? new Intl.DateTimeFormat(lang === "en" ? "en-CH" : "fr-CH", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(project.boostedUntil))
     : null;
   const credits = billing?.plan === "plus" ? billing.boostCredits || 0 : 0;
   const hours = plans?.boostHours ?? 48;

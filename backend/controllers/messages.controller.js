@@ -6,6 +6,8 @@ const User         = require('../models/User');
 
 const { POPULATE_FIELDS, populateMessage, REACTIONS } = require('../utils/messagePopulate');
 const { containsProfanity } = require('../utils/profanityFilter');
+const MessageAttachment = require('../models/MessageAttachment');
+const { MAX_SIZE, USER_QUOTA, identify, deleteForMessages } = require('../utils/attachments');
 
 const isId = (value) => mongoose.isValidObjectId(value) && /^[a-f0-9]{24}$/i.test(String(value));
 const MAX_CONTENT = 2000;
@@ -341,6 +343,8 @@ exports.deleteMessage = async (req, res) => {
     if (msg.senderId.toString() !== me || msg.isSystem) return res.status(403).json({ message: 'Non autorisé' });
     msg.deleted = true;
     msg.content = 'Message supprimé';
+    msg.attachments = [];
+    await deleteForMessages([msg._id]);
     await msg.save();
 
     // Propager la suppression en temps réel à tous les destinataires
@@ -506,3 +510,66 @@ exports.getBlockedUsers = async (req, res) => {
     return res.status(500).json({message: 'Erreur serveur'});
   }
 }
+
+// ==============================
+// PIÈCES JOINTES
+// ==============================
+
+// POST /messages/attachments — fichier brut (corps de la requête), nom dans X-File-Name.
+// Renvoie la pièce jointe à citer dans le message envoyé ensuite (socket send_message / send_group_message).
+exports.uploadAttachment = async (req, res) => {
+  try {
+    const me = req.user.id;
+    const buffer = Buffer.isBuffer(req.body) ? req.body : null;
+    if (!buffer || !buffer.length) return res.status(400).json({ message: 'Fichier vide.' });
+    if (buffer.length > MAX_SIZE) return res.status(413).json({ message: 'Fichier trop lourd (5 Mo au maximum).' });
+    const found = identify(buffer, req.get('x-file-name'), req.get('content-type'));
+    if (found.error) return res.status(400).json({ message: found.error });
+
+    const [used] = await MessageAttachment.aggregate([
+      { $match: { uploaderId: new mongoose.Types.ObjectId(me) } },
+      { $group: { _id: null, total: { $sum: '$size' } } },
+    ]);
+    if ((used?.total || 0) + buffer.length > USER_QUOTA) {
+      return res.status(413).json({ message: 'Espace de pièces jointes plein (50 Mo) : supprime d\'anciens messages avec fichiers.' });
+    }
+
+    const doc = await MessageAttachment.create({ uploaderId: me, ...found, size: buffer.length, data: buffer });
+    return res.status(201).json({ _id: doc._id, name: doc.name, mime: doc.mime, kind: doc.kind, size: doc.size });
+  } catch (err) {
+    console.error('Upload attachment error:', err);
+    return res.status(500).json({ message: 'Envoi du fichier impossible.' });
+  }
+};
+
+// GET /messages/attachments/:id — réservé à la personne qui l'a envoyé et aux membres de la conversation
+exports.downloadAttachment = async (req, res) => {
+  try {
+    const me = String(req.user.id);
+    if (!isId(req.params.id)) return res.status(404).json({ message: 'Fichier introuvable' });
+    const att = await MessageAttachment.findById(req.params.id);
+    if (!att) return res.status(404).json({ message: 'Fichier introuvable' });
+
+    let allowed = String(att.uploaderId) === me;
+    if (!allowed && att.messageId) {
+      const msg = await Message.findById(att.messageId).select('senderId receiverId conversationId deleted');
+      if (msg && !msg.deleted) allowed = ((await audienceOf(msg)) || []).includes(me);
+    }
+    if (!allowed) return res.status(404).json({ message: 'Fichier introuvable' });
+
+    const encoded = encodeURIComponent(att.name).replace(/['()]/g, escape);
+    const disposition = att.kind === 'image' ? 'inline' : 'attachment';
+    res.set({
+      'Content-Type': att.mime,
+      'Content-Length': String(att.size),
+      'Content-Disposition': `${disposition}; filename="${att.name.replace(/[^\x20-\x7e]|"/g, '_')}"; filename*=UTF-8''${encoded}`,
+      'Cache-Control': 'private, max-age=86400',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
+    });
+    return res.end(att.data);
+  } catch (err) {
+    console.error('Download attachment error:', err);
+    return res.status(500).json({ message: 'Téléchargement impossible.' });
+  }
+};

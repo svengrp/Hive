@@ -13,7 +13,6 @@
   text-align: center;
   font-size: 22px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   background: var(--bg-surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-sm);

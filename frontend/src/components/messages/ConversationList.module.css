@@ -199,7 +199,6 @@
   flex-shrink: 0;
   color: var(--text-muted);
   font-size: 12px;
-  font-variant-numeric: tabular-nums;
   line-height: 1.35;
   white-space: nowrap;
 }
@@ -243,7 +242,6 @@
   color: var(--highlight-text);
   font-size: 12px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
@@ -300,7 +298,6 @@
 .archivedCount {
   color: var(--text-muted);
   font-size: 13px;
-  font-variant-numeric: tabular-nums;
 }
 
 .archivedChevron {

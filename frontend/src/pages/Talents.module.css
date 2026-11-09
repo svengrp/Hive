@@ -615,3 +615,13 @@
     flex: 1 1 auto;
   }
 }
+
+/* Titre façon CV sous le nom */
+.headline {
+  margin: 1px 0 0;
+  overflow: hidden;
+  font-size: 13.5px;
+  color: var(--text-main);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

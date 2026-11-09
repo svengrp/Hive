@@ -39,6 +39,38 @@ const userSchema = new mongoose.Schema({
 
   // --- Profil ---
   bio: { type: String, default: "Nouvel utilisateur Hive !" },
+  // Titre affiché sous le nom, comme sur un CV (« Étudiant en informatique de gestion · HEG Genève »)
+  headline: { type: String, default: "" },
+  // Parcours détaillé (profil façon CV) : dates au format AAAA-MM, fin vide = en cours
+  experiences: {
+    type: [new mongoose.Schema({
+      title: { type: String, required: true },
+      organization: { type: String, default: "" },
+      location: { type: String, default: "" },
+      start: { type: String, default: "" },
+      end: { type: String, default: "" },
+      current: { type: Boolean, default: false },
+      description: { type: String, default: "" },
+    })],
+    default: [],
+  },
+  formations: {
+    type: [new mongoose.Schema({
+      school: { type: String, required: true },
+      degree: { type: String, default: "" },
+      start: { type: String, default: "" },
+      end: { type: String, default: "" },
+      current: { type: Boolean, default: false },
+      description: { type: String, default: "" },
+    })],
+    default: [],
+  },
+  // Liens publics (https) : site ou portfolio, LinkedIn, GitHub
+  links: {
+    website: { type: String, default: "" },
+    linkedin: { type: String, default: "" },
+    github: { type: String, default: "" },
+  },
   age: { type: Number, default: null },
   languages: { type: [String], default: [] },
   education: { type: [String], default: [] },

@@ -168,6 +168,7 @@ function TalentCard({ talent, onInvite }) {
             <span className={classes.nameText}>{name}</span>
             {talent.plan === "plus" && <PlusBadge />}
           </p>
+          {talent.headline && <p className={classes.headline}>{talent.headline}</p>}
           {location && <p className={classes.location}><MapPin size={13} aria-hidden="true" />{location}</p>}
           {talent.reputation?.votes > 0 && <HiveRating reputation={talent.reputation} compact />}
         </div>
